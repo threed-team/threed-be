@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
-import com.example.threedbe.post.service.CompnayPostService;
+import com.example.threedbe.post.service.CompanyPostService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +18,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CompanyPostController implements CompanyPostControllerSwagger {
 
-	private final CompnayPostService compnayPostService;
+	private final CompanyPostService companyPostService;
 
 	@Override
 	@GetMapping("/search")
 	public ResponseEntity<PageResponse<CompanyPostResponse>> search(
 		@Valid CompanyPostSearchRequest companyPostSearchRequest) {
 
-		return ResponseEntity.ok(PageResponse.from(compnayPostService.search(companyPostSearchRequest)));
+		return ResponseEntity.ok(PageResponse.from(companyPostService.search(companyPostSearchRequest)));
 	}
 
 }

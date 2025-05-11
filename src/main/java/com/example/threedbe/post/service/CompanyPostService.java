@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class CompnayPostService {
+public class CompanyPostService {
 
 	private final CompanyPostRepository companyPostRepository;
 
