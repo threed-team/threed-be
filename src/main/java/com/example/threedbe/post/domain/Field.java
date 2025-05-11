@@ -1,5 +1,13 @@
 package com.example.threedbe.post.domain;
 
+import java.util.Arrays;
+import java.util.Optional;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum Field {
 
 	AI("AI"),
@@ -20,8 +28,10 @@ public enum Field {
 
 	private final String value;
 
-	Field(String value) {
-		this.value = value;
+	public static Optional<Field> of(String value) {
+		return Arrays.stream(Field.values())
+			.filter(company -> company.getValue().equals(value))
+			.findFirst();
 	}
 
 }

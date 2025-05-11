@@ -1,0 +1,80 @@
+package com.example.threedbe.post.service;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import com.example.threedbe.common.exception.ThreedBadRequestException;
+import com.example.threedbe.post.domain.Company;
+import com.example.threedbe.post.domain.Field;
+import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
+import com.example.threedbe.post.dto.response.CompanyPostResponse;
+import com.example.threedbe.post.repository.CompanyPostRepository;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
+public class CompanyPostService {
+
+	private final CompanyPostRepository companyPostRepository;
+
+	// TODO: QueryDSL로 변경
+	public Page<CompanyPostResponse> search(CompanyPostSearchRequest companyPostSearchRequest) {
+		List<Field> fields = Optional.ofNullable(companyPostSearchRequest.fields())
+			.orElse(Collections.emptyList())
+			.stream()
+			.map(value -> Field.of(value).orElseThrow(() -> new ThreedBadRequestException("등록된 분야가 아닙니다: " + value)))
+			.toList();
+		List<Company> companies = Optional.ofNullable(companyPostSearchRequest.companies())
+			.orElse(Collections.emptyList())
+			.stream()
+			.map(value -> Company.of(value).orElseThrow(() -> new ThreedBadRequestException("등록된 회사가 아닙니다: " + value)))
+			.toList();
+		PageRequest pageRequest = PageRequest.of(companyPostSearchRequest.page() - 1, companyPostSearchRequest.size());
+		String keyword =
+			StringUtils.hasText(companyPostSearchRequest.keyword()) ? companyPostSearchRequest.keyword() : null;
+
+		if (companies.isEmpty()) {
+			if (fields.isEmpty()) {
+				return companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
+					.map(CompanyPostResponse::from);
+			} else {
+				return companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
+					.map(CompanyPostResponse::from);
+			}
+		} else if (companies.contains(Company.ETC)) {
+			List<Company> excludeCompanies = new ArrayList<>(Company.MAIN_COMPANIES);
+			companies.stream()
+				.filter(company -> company != Company.ETC)
+				.forEach(excludeCompanies::remove);
+
+			if (fields.isEmpty()) {
+				return companyPostRepository.searchCompanyPostsWithoutFieldsExcludeCompanies(excludeCompanies, keyword,
+						pageRequest)
+					.map(CompanyPostResponse::from);
+			} else {
+				return companyPostRepository.searchCompanyPostsWithFieldsExcludeCompanies(fields, excludeCompanies,
+						keyword, pageRequest)
+					.map(CompanyPostResponse::from);
+			}
+		} else {
+			if (fields.isEmpty()) {
+				return companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
+					.map(CompanyPostResponse::from);
+			} else {
+				return companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
+					.map(CompanyPostResponse::from);
+			}
+		}
+	}
+
+}

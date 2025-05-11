@@ -33,6 +33,7 @@ public abstract class Post extends BaseEntity {
 
 	private String title;
 
+	@Column(columnDefinition = "TEXT")
 	private String content;
 
 	private String thumbnailImageUrl;
