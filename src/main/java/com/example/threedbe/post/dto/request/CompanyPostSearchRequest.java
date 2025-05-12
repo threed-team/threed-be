@@ -6,7 +6,6 @@ import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 
 public record CompanyPostSearchRequest(
@@ -28,7 +27,7 @@ public record CompanyPostSearchRequest(
 	int size,
 
 	@Schema(description = "검색 키워드", example = "개발자")
-	@NotBlank
+	@Nullable
 	String keyword
 
 ) {
