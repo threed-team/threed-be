@@ -25,7 +25,9 @@ public class CompanyPostController implements CompanyPostControllerSwagger {
 	public ResponseEntity<PageResponse<CompanyPostResponse>> search(
 		@Valid CompanyPostSearchRequest companyPostSearchRequest) {
 
-		return ResponseEntity.ok(PageResponse.from(companyPostService.search(companyPostSearchRequest)));
+		PageResponse<CompanyPostResponse> search = companyPostService.search(companyPostSearchRequest);
+
+		return ResponseEntity.ok(search);
 	}
 
 }

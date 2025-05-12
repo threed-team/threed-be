@@ -28,7 +28,7 @@ public class CompanyPostService {
 	private final CompanyPostRepository companyPostRepository;
 
 	// TODO: QueryDSL로 변경
-	public Page<CompanyPostResponse> search(CompanyPostSearchRequest companyPostSearchRequest) {
+	public PageResponse<CompanyPostResponse> search(CompanyPostSearchRequest companyPostSearchRequest) {
 		List<Field> fields = Optional.ofNullable(companyPostSearchRequest.fields())
 			.orElse(Collections.emptyList())
 			.stream()
@@ -43,12 +43,16 @@ public class CompanyPostService {
 		String keyword =
 			StringUtils.hasText(companyPostSearchRequest.keyword()) ? companyPostSearchRequest.keyword() : null;
 
+		Page<CompanyPostResponse> companyPostResponses;
 		if (companies.isEmpty()) {
 			if (fields.isEmpty()) {
-				return companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
+				companyPostResponses
+					= companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
 					.map(CompanyPostResponse::from);
+
 			} else {
-				return companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
+				companyPostResponses
+					= companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
 					.map(CompanyPostResponse::from);
 			}
 		} else if (companies.contains(Company.ETC)) {
@@ -58,23 +62,32 @@ public class CompanyPostService {
 				.forEach(excludeCompanies::remove);
 
 			if (fields.isEmpty()) {
-				return companyPostRepository.searchCompanyPostsWithoutFieldsExcludeCompanies(excludeCompanies, keyword,
+				companyPostResponses = companyPostRepository.searchCompanyPostsWithoutFieldsExcludeCompanies(
+						excludeCompanies,
+						keyword,
 						pageRequest)
 					.map(CompanyPostResponse::from);
 			} else {
-				return companyPostRepository.searchCompanyPostsWithFieldsExcludeCompanies(fields, excludeCompanies,
-						keyword, pageRequest)
+				companyPostResponses = companyPostRepository.searchCompanyPostsWithFieldsExcludeCompanies(
+						fields,
+						excludeCompanies,
+						keyword,
+						pageRequest)
 					.map(CompanyPostResponse::from);
 			}
 		} else {
 			if (fields.isEmpty()) {
-				return companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
+				companyPostResponses
+					= companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
 					.map(CompanyPostResponse::from);
 			} else {
-				return companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
+				companyPostResponses
+					= companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
 					.map(CompanyPostResponse::from);
 			}
 		}
+
+		return PageResponse.from(companyPostResponses);
 	}
 
 }
