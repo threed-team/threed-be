@@ -1,5 +1,6 @@
 package com.example.threedbe.post.service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,10 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.post.domain.Company;
+import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
+import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.repository.CompanyPostRepository;
 
@@ -88,6 +92,24 @@ public class CompanyPostService {
 		}
 
 		return PageResponse.from(companyPostResponses);
+	}
+
+	// TODO: 쿼리 수 줄이기
+	@Transactional
+	public CompanyPostDetailResponse getCompanyPostDetail(long id) {
+		CompanyPost companyPost = companyPostRepository.findById(id)
+			.orElseThrow(() -> new ThreedBadRequestException("회사 포스트가 존재하지 않습니다: " + id));
+		companyPost.increaseViewCount();
+
+		int bookmarkCount = companyPost.getBookmarkCount();
+
+		LocalDateTime createdAt = companyPost.getCreatedAt();
+		Long nextId = companyPostRepository.findNextId(createdAt)
+			.orElse(null);
+		Long prevId = companyPostRepository.findPrevId(createdAt)
+			.orElse(null);
+
+		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, nextId, prevId);
 	}
 
 }
