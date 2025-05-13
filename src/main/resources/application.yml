@@ -27,3 +27,9 @@ springdoc:
     disable-swagger-default-url: true
     display-request-duration: true
     operations-sorter: alpha
+
+auth:
+  access-key: secretsecretsecretsecretsecretsecretsecretsecret
+  refresh-key: secretsecretsecretsecretsecretsecretsecretsecret
+  access-expiration: 7200000 # 2 hours
+  refresh-expiration: 2419200000 # 28 days
