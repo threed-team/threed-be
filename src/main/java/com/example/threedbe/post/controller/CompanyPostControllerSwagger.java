@@ -41,6 +41,6 @@ public interface CompanyPostControllerSwagger {
 				description = "회사 포스트가 존재하지 않는 경우",
 				content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
 		})
-	ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(long id);
+	ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(Long postId);
 
 }

@@ -33,9 +33,11 @@ public class CompanyPostController implements CompanyPostControllerSwagger {
 	}
 
 	@Override
-	@GetMapping("/{id}")
-	public ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(@PathVariable long id) {
-		return ResponseEntity.ok(companyPostService.getCompanyPostDetail(id));
+	@GetMapping("/{postId}")
+	public ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(@PathVariable Long postId) {
+		CompanyPostDetailResponse companyPostDetailResponse = companyPostService.getCompanyPostDetail(postId);
+
+		return ResponseEntity.ok(companyPostDetailResponse);
 	}
 
 }
