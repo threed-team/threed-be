@@ -2,6 +2,8 @@ package com.example.threedbe.member.domain;
 
 import java.time.LocalDateTime;
 
+import com.example.threedbe.auth.domain.RefreshToken;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -35,8 +37,13 @@ public class Member {
 	@Embedded
 	private AuthProvider authProvider;
 
-	private String refreshToken;
+	@Embedded
+	private RefreshToken refreshToken;
 
 	private LocalDateTime deletedAt;
+
+	public boolean isDeleted() {
+		return deletedAt != null;
+	}
 
 }
