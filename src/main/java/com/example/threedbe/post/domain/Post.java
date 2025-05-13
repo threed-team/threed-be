@@ -1,9 +1,13 @@
 package com.example.threedbe.post.domain;
 
+import java.util.List;
+
 import org.hibernate.annotations.ColumnDefault;
 
+import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
@@ -14,6 +18,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -45,5 +50,16 @@ public abstract class Post extends BaseEntity {
 	@Column(nullable = false)
 	@ColumnDefault("0")
 	private int viewCount;
+
+	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<Bookmark> bookmarks;
+
+	public void increaseViewCount() {
+		viewCount++;
+	}
+
+	public int getBookmarkCount() {
+		return bookmarks.size();
+	}
 
 }

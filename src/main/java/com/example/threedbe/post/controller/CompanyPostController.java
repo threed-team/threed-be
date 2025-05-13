@@ -2,11 +2,13 @@ package com.example.threedbe.post.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
+import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.service.CompanyPostService;
 
@@ -28,6 +30,12 @@ public class CompanyPostController implements CompanyPostControllerSwagger {
 		PageResponse<CompanyPostResponse> search = companyPostService.search(companyPostSearchRequest);
 
 		return ResponseEntity.ok(search);
+	}
+
+	@Override
+	@GetMapping("/{id}")
+	public ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(@PathVariable long id) {
+		return ResponseEntity.ok(companyPostService.getCompanyPostDetail(id));
 	}
 
 }
