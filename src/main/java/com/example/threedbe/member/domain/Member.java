@@ -1,6 +1,7 @@
 package com.example.threedbe.member.domain;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 import com.example.threedbe.auth.domain.RefreshToken;
 
@@ -44,6 +45,19 @@ public class Member {
 
 	public boolean isDeleted() {
 		return deletedAt != null;
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (!(o instanceof Member member))
+			return false;
+
+		return Objects.equals(id, member.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id);
 	}
 
 }

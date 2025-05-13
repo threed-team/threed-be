@@ -34,5 +34,15 @@ public class Bookmark {
 	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 
+	public Bookmark(Member member, Post post) {
+		this.member = member;
+		this.post = post;
+	}
+
+	public void setPost(Post post) {
+		this.post = post;
+		post.getBookmarks().add(this);
+	}
+
 }
 

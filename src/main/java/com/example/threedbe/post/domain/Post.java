@@ -6,6 +6,7 @@ import org.hibernate.annotations.ColumnDefault;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
+import com.example.threedbe.common.exception.ThreedConflictException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -51,15 +52,29 @@ public abstract class Post extends BaseEntity {
 	@ColumnDefault("0")
 	private int viewCount;
 
-	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Bookmark> bookmarks;
 
 	public void increaseViewCount() {
-		viewCount++;
+		this.viewCount++;
 	}
 
 	public int getBookmarkCount() {
-		return bookmarks.size();
+		return this.bookmarks.size();
+	}
+
+	public void addBookmark(Bookmark bookmark) {
+		validateDuplicateBookmark(bookmark);
+		this.bookmarks.add(bookmark);
+		bookmark.setPost(this);
+	}
+
+	private void validateDuplicateBookmark(Bookmark bookmark) {
+		boolean exists = this.bookmarks.stream()
+			.anyMatch(b -> b.getMember().equals(bookmark.getMember()));
+		if (exists) {
+			throw new ThreedConflictException("이미 북마크가 존재합니다.");
+		}
 	}
 
 }
