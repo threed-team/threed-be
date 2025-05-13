@@ -96,9 +96,9 @@ public class CompanyPostService {
 
 	// TODO: 쿼리 수 줄이기
 	@Transactional
-	public CompanyPostDetailResponse getCompanyPostDetail(long id) {
-		CompanyPost companyPost = companyPostRepository.findById(id)
-			.orElseThrow(() -> new ThreedBadRequestException("회사 포스트가 존재하지 않습니다: " + id));
+	public CompanyPostDetailResponse getCompanyPostDetail(Long postId) {
+		CompanyPost companyPost = companyPostRepository.findById(postId)
+			.orElseThrow(() -> new ThreedBadRequestException("회사 포스트가 존재하지 않습니다: " + postId));
 		companyPost.increaseViewCount();
 
 		int bookmarkCount = companyPost.getBookmarkCount();
