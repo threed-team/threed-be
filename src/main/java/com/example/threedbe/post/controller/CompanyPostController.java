@@ -6,7 +6,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.threedbe.common.annotation.CurrentMember;
 import com.example.threedbe.common.dto.PageResponse;
+import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
 import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
@@ -34,8 +36,11 @@ public class CompanyPostController implements CompanyPostControllerSwagger {
 
 	@Override
 	@GetMapping("/{postId}")
-	public ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(@PathVariable Long postId) {
-		CompanyPostDetailResponse companyPostDetailResponse = companyPostService.getCompanyPostDetail(postId);
+	public ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(
+		@CurrentMember Member member,
+		@PathVariable Long postId) {
+
+		CompanyPostDetailResponse companyPostDetailResponse = companyPostService.getCompanyPostDetail(member, postId);
 
 		return ResponseEntity.ok(companyPostDetailResponse);
 	}
