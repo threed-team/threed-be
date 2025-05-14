@@ -18,10 +18,11 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/members")
 @RequiredArgsConstructor
-public class MemberController {
+public class MemberController implements MemberControllerSwagger {
 
 	private final MemberService memberService;
 
+	@Override
 	@GetMapping("/posts")
 	public ResponseEntity<PageResponse<AuthoredPostResponse>> findAuthoredPosts(
 		@LoginMember Member member,
