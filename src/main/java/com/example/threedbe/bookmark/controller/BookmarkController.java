@@ -13,7 +13,7 @@ import com.example.threedbe.member.domain.Member;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/posts")
+@RequestMapping("/api/v1/bookmarks")
 @RequiredArgsConstructor
 public class BookmarkController {
 
