@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
+import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
@@ -98,7 +99,7 @@ public class CompanyPostService {
 	@Transactional
 	public CompanyPostDetailResponse getCompanyPostDetail(Long postId) {
 		CompanyPost companyPost = companyPostRepository.findById(postId)
-			.orElseThrow(() -> new ThreedBadRequestException("회사 포스트가 존재하지 않습니다: " + postId));
+			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
 		companyPost.increaseViewCount();
 
 		int bookmarkCount = companyPost.getBookmarkCount();
