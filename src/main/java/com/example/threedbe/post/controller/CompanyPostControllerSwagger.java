@@ -26,7 +26,8 @@ public interface CompanyPostControllerSwagger {
 				responseCode = "200",
 				description = "회사 포스트 조회 성공")
 		})
-	@SwaggerErrorCode400(description = "등록된 회사, 분야가 아닌 경우")
+	@SwaggerErrorCode400
+	@SwaggerErrorCode404(description = "등록된 회사, 분야가 아닌 경우")
 	@SwaggerErrorCode500
 	ResponseEntity<PageResponse<CompanyPostResponse>> search(CompanyPostSearchRequest companyPostSearchRequest);
 

@@ -38,4 +38,17 @@ public interface BookmarkControllerSwagger {
 	@SwaggerErrorCode500
 	ResponseEntity<Void> createBookmark(@Parameter(hidden = true) Member member, Long postId);
 
+	@Operation(
+		summary = "북마크 생성",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "북마크 생성 성공")
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "존재하지 않는 포스트인 경우, 존재하지 않는 북마크인 경우")
+	@SwaggerErrorCode500
+	ResponseEntity<Void> deleteBookmark(@Parameter(hidden = true) Member member, Long postId);
+
 }

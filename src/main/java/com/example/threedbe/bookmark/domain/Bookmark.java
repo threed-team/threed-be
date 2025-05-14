@@ -39,9 +39,12 @@ public class Bookmark {
 		this.post = post;
 	}
 
-	public void setPost(Post post) {
-		this.post = post;
-		post.getBookmarks().add(this);
+	public void removeMember() {
+		this.member = null;
+	}
+
+	public void removePost() {
+		this.post = null;
 	}
 
 }
