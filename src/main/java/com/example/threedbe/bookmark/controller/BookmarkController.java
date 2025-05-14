@@ -41,6 +41,7 @@ public class BookmarkController implements BookmarkControllerSwagger {
 		return ResponseEntity.ok().build();
 	}
 
+	@Override
 	@GetMapping
 	public ResponseEntity<PageResponse<BookmarkedPostResponse>> findBookmarkedPosts(
 		@LoginMember Member member,
