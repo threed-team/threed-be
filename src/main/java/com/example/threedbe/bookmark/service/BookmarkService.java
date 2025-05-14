@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
-import com.example.threedbe.bookmark.dto.request.BookmarkPageRequest;
+import com.example.threedbe.bookmark.dto.request.BookmarkedPostRequest;
 import com.example.threedbe.bookmark.dto.response.BookmarkedPostResponse;
 import com.example.threedbe.bookmark.repository.BookmarkRepository;
 import com.example.threedbe.common.dto.PageResponse;
@@ -54,10 +54,9 @@ public class BookmarkService {
 	// TODO: N+1 문제 해결하기
 	public PageResponse<BookmarkedPostResponse> findBookmarkedPosts(
 		Member member,
-		BookmarkPageRequest bookmarkPageRequest) {
+		BookmarkedPostRequest bookmarkedPostRequest) {
 
-		PageRequest pageRequest = PageRequest.of(bookmarkPageRequest.page() - 1, bookmarkPageRequest.size());
-
+		PageRequest pageRequest = PageRequest.of(bookmarkedPostRequest.page() - 1, bookmarkedPostRequest.size());
 		Page<BookmarkedPostResponse> bookmarkedPosts = postRepository.findByBookmarksMemberIdOrderByCreatedAtDesc(
 				member.getId(),
 				pageRequest)

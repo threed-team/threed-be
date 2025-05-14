@@ -3,7 +3,7 @@ package com.example.threedbe.bookmark.controller;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
-import com.example.threedbe.bookmark.dto.request.BookmarkPageRequest;
+import com.example.threedbe.bookmark.dto.request.BookmarkedPostRequest;
 import com.example.threedbe.bookmark.dto.response.BookmarkedPostResponse;
 import com.example.threedbe.common.annotation.SwaggerErrorCode400;
 import com.example.threedbe.common.annotation.SwaggerErrorCode401;
@@ -66,6 +66,6 @@ public interface BookmarkControllerSwagger {
 	@SwaggerErrorCode500
 	ResponseEntity<PageResponse<BookmarkedPostResponse>> findBookmarkedPosts(
 		@Parameter(hidden = true) Member member,
-		BookmarkPageRequest bookmarkPageRequest);
+		BookmarkedPostRequest bookmarkedPostRequest);
 
 }
