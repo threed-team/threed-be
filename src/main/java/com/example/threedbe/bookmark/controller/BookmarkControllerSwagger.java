@@ -3,10 +3,13 @@ package com.example.threedbe.bookmark.controller;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
+import com.example.threedbe.bookmark.dto.request.BookmarkPageRequest;
+import com.example.threedbe.bookmark.dto.response.BookmarkedPostResponse;
 import com.example.threedbe.common.annotation.SwaggerErrorCode400;
 import com.example.threedbe.common.annotation.SwaggerErrorCode401;
 import com.example.threedbe.common.annotation.SwaggerErrorCode404;
 import com.example.threedbe.common.annotation.SwaggerErrorCode500;
+import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,5 +53,19 @@ public interface BookmarkControllerSwagger {
 	@SwaggerErrorCode404(description = "존재하지 않는 포스트인 경우, 존재하지 않는 북마크인 경우")
 	@SwaggerErrorCode500
 	ResponseEntity<Void> deleteBookmark(@Parameter(hidden = true) Member member, Long postId);
+
+	@Operation(
+		summary = "북마크된 포스트 리스트 조회",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "북마크된 포스트 리스트 조회 성공")
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode401
+	@SwaggerErrorCode500
+	ResponseEntity<PageResponse<BookmarkedPostResponse>> findBookmarkedPosts(
+		@Parameter(hidden = true) Member member,
+		BookmarkPageRequest bookmarkPageRequest);
 
 }

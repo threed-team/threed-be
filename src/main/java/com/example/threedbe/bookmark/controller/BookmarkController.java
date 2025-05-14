@@ -2,15 +2,20 @@ package com.example.threedbe.bookmark.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.threedbe.bookmark.dto.request.BookmarkPageRequest;
+import com.example.threedbe.bookmark.dto.response.BookmarkedPostResponse;
 import com.example.threedbe.bookmark.service.BookmarkService;
 import com.example.threedbe.common.annotation.LoginMember;
+import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -34,6 +39,17 @@ public class BookmarkController implements BookmarkControllerSwagger {
 		bookmarkService.deleteBookmark(member, postId);
 
 		return ResponseEntity.ok().build();
+	}
+
+	@Override
+	@GetMapping
+	public ResponseEntity<PageResponse<BookmarkedPostResponse>> findBookmarkedPosts(
+		@LoginMember Member member,
+		@Valid BookmarkPageRequest bookmarkPageRequest) {
+
+		PageResponse<BookmarkedPostResponse> posts = bookmarkService.findBookmarkedPosts(member, bookmarkPageRequest);
+
+		return ResponseEntity.ok(posts);
 	}
 
 }
