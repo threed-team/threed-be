@@ -1,10 +1,15 @@
 package com.example.threedbe.bookmark.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
+import com.example.threedbe.bookmark.dto.request.BookmarkPageRequest;
+import com.example.threedbe.bookmark.dto.response.BookmarkedPostResponse;
 import com.example.threedbe.bookmark.repository.BookmarkRepository;
+import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedConflictException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.member.domain.Member;
@@ -44,6 +49,21 @@ public class BookmarkService {
 			.orElseThrow(() -> new ThreedNotFoundException("북마크하지 않은 포스트입니다."));
 
 		member.removeBookmark(bookmark);
+	}
+
+	// TODO: N+1 문제 해결하기
+	public PageResponse<BookmarkedPostResponse> findBookmarkedPosts(
+		Member member,
+		BookmarkPageRequest bookmarkPageRequest) {
+
+		PageRequest pageRequest = PageRequest.of(bookmarkPageRequest.page() - 1, bookmarkPageRequest.size());
+
+		Page<BookmarkedPostResponse> bookmarkedPosts = postRepository.findByBookmarksMemberIdOrderByCreatedAtDesc(
+				member.getId(),
+				pageRequest)
+			.map(BookmarkedPostResponse::from);
+
+		return PageResponse.from(bookmarkedPosts);
 	}
 
 }
