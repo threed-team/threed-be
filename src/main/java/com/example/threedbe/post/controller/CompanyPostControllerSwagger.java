@@ -1,8 +1,10 @@
 package com.example.threedbe.post.controller;
 
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
+import com.example.threedbe.common.annotation.SwaggerErrorCode400;
+import com.example.threedbe.common.annotation.SwaggerErrorCode404;
+import com.example.threedbe.common.annotation.SwaggerErrorCode500;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
 import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
@@ -22,12 +24,10 @@ public interface CompanyPostControllerSwagger {
 		responses = {
 			@ApiResponse(
 				responseCode = "200",
-				description = "회사 포스트 조회 성공"),
-			@ApiResponse(
-				responseCode = "400",
-				description = "등록된 회사, 분야가 아닌 경우",
-				content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+				description = "회사 포스트 조회 성공")
 		})
+	@SwaggerErrorCode400(description = "등록된 회사, 분야가 아닌 경우")
+	@SwaggerErrorCode500
 	ResponseEntity<PageResponse<CompanyPostResponse>> search(CompanyPostSearchRequest companyPostSearchRequest);
 
 	@Operation(
@@ -35,12 +35,12 @@ public interface CompanyPostControllerSwagger {
 		responses = {
 			@ApiResponse(
 				responseCode = "200",
-				description = "회사 포스트 상세 조회 성공"),
-			@ApiResponse(
-				responseCode = "404",
-				description = "회사 포스트가 존재하지 않는 경우",
-				content = @Content(schema = @Schema(implementation = ProblemDetail.class)))
+				description = "회사 포스트 상세 조회 성공",
+				content = @Content(schema = @Schema(implementation = CompanyPostDetailResponse.class))),
 		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode404(description = "회사 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
 	ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(Long postId);
 
 }

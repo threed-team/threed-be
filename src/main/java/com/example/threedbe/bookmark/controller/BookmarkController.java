@@ -15,11 +15,12 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/bookmarks")
 @RequiredArgsConstructor
-public class BookmarkController {
+public class BookmarkController implements BookmarkControllerSwagger {
 
 	private final BookmarkService bookmarkService;
 
-	@PostMapping("/{postId}/bookmarks")
+	@Override
+	@PostMapping("/{postId}")
 	public ResponseEntity<Void> createBookmark(@LoginMember Member member, @PathVariable Long postId) {
 		bookmarkService.createBookmark(member, postId);
 
