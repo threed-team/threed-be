@@ -5,7 +5,6 @@ import java.util.List;
 
 import com.example.threedbe.auth.domain.RefreshToken;
 import com.example.threedbe.bookmark.domain.Bookmark;
-import com.example.threedbe.common.exception.ThreedConflictException;
 import com.example.threedbe.post.domain.Post;
 
 import jakarta.persistence.CascadeType;
@@ -56,19 +55,16 @@ public class Member {
 	}
 
 	public void addBookmark(Post post) {
-		validateDuplicateBookmark(post);
-
 		Bookmark bookmark = new Bookmark(this, post);
 		this.bookmarks.add(bookmark);
 		post.getBookmarks().add(bookmark);
 	}
 
-	private void validateDuplicateBookmark(Post post) {
-		boolean isAlreadyBookmarked = this.bookmarks.stream()
-			.anyMatch(bookmark -> bookmark.getPost().equals(post));
-		if (isAlreadyBookmarked) {
-			throw new ThreedConflictException("이미 북마크한 포스트입니다.");
-		}
+	public void removeBookmark(Bookmark bookmark) {
+		this.bookmarks.remove(bookmark);
+		bookmark.getPost().getBookmarks().remove(bookmark);
+		bookmark.removeMember();
+		bookmark.removePost();
 	}
 
 }
