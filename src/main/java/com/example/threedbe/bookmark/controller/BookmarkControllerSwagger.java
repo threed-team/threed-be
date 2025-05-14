@@ -39,11 +39,11 @@ public interface BookmarkControllerSwagger {
 	ResponseEntity<Void> createBookmark(@Parameter(hidden = true) Member member, Long postId);
 
 	@Operation(
-		summary = "북마크 생성",
+		summary = "북마크 삭제",
 		responses = {
 			@ApiResponse(
 				responseCode = "200",
-				description = "북마크 생성 성공")
+				description = "북마크 삭제 성공")
 		})
 	@SwaggerErrorCode400
 	@SwaggerErrorCode401
