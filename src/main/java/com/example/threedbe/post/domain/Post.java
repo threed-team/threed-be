@@ -1,12 +1,12 @@
 package com.example.threedbe.post.domain;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.hibernate.annotations.ColumnDefault;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
-import com.example.threedbe.common.exception.ThreedConflictException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -63,18 +63,17 @@ public abstract class Post extends BaseEntity {
 		return this.bookmarks.size();
 	}
 
-	public void addBookmark(Bookmark bookmark) {
-		validateDuplicateBookmark(bookmark);
-		this.bookmarks.add(bookmark);
-		bookmark.setPost(this);
+	@Override
+	public final boolean equals(Object o) {
+		if (!(o instanceof Post post))
+			return false;
+
+		return Objects.equals(id, post.id);
 	}
 
-	private void validateDuplicateBookmark(Bookmark bookmark) {
-		boolean exists = this.bookmarks.stream()
-			.anyMatch(b -> b.getMember().equals(bookmark.getMember()));
-		if (exists) {
-			throw new ThreedConflictException("이미 북마크가 존재합니다.");
-		}
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id);
 	}
 
 }
