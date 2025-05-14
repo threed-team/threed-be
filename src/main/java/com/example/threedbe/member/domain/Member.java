@@ -2,6 +2,7 @@ package com.example.threedbe.member.domain;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import com.example.threedbe.auth.domain.RefreshToken;
 import com.example.threedbe.bookmark.domain.Bookmark;
@@ -65,6 +66,19 @@ public class Member {
 		bookmark.getPost().getBookmarks().remove(bookmark);
 		bookmark.removeMember();
 		bookmark.removePost();
+	}
+
+	@Override
+	public final boolean equals(Object o) {
+		if (!(o instanceof Member member))
+			return false;
+
+		return Objects.equals(id, member.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(id);
 	}
 
 }

@@ -32,6 +32,9 @@ public record CompanyPostDetailResponse(
 	@Schema(description = "북마크수", example = "0")
 	int bookmarkCount,
 
+	@Schema(description = "북마크 여부", example = "true")
+	boolean isBookmarked,
+
 	@Schema(description = "다음 포스트 아이디", example = "3")
 	Long nextId,
 
@@ -43,6 +46,7 @@ public record CompanyPostDetailResponse(
 	public static CompanyPostDetailResponse from(
 		CompanyPost companyPost,
 		int bookmarkCount,
+		boolean isBookmarked,
 		Long nextId,
 		Long previousId) {
 
@@ -55,6 +59,7 @@ public record CompanyPostDetailResponse(
 			companyPost.getCreatedAt(),
 			companyPost.getSourceUrl(),
 			bookmarkCount,
+			isBookmarked,
 			nextId,
 			previousId
 		);

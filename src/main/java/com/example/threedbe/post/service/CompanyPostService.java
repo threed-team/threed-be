@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
+import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
@@ -96,12 +97,16 @@ public class CompanyPostService {
 
 	// TODO: 쿼리 수 줄이기
 	@Transactional
-	public CompanyPostDetailResponse getCompanyPostDetail(Long postId) {
+	public CompanyPostDetailResponse getCompanyPostDetail(Member member, Long postId) {
 		CompanyPost companyPost = companyPostRepository.findById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
 		companyPost.increaseViewCount();
 
 		int bookmarkCount = companyPost.getBookmarkCount();
+
+		boolean isBookmarked = companyPost.getBookmarks()
+			.stream()
+			.anyMatch(bookmark -> bookmark.getMember().equals(member));
 
 		LocalDateTime createdAt = companyPost.getCreatedAt();
 		Long nextId = companyPostRepository.findNextId(createdAt)
@@ -109,7 +114,7 @@ public class CompanyPostService {
 		Long prevId = companyPostRepository.findPrevId(createdAt)
 			.orElse(null);
 
-		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, nextId, prevId);
+		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, isBookmarked, nextId, prevId);
 	}
 
 }
