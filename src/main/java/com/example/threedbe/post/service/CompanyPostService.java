@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.PageResponse;
-import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
@@ -37,12 +36,12 @@ public class CompanyPostService {
 		List<Field> fields = Optional.ofNullable(companyPostSearchRequest.fields())
 			.orElse(Collections.emptyList())
 			.stream()
-			.map(value -> Field.of(value).orElseThrow(() -> new ThreedBadRequestException("등록된 분야가 아닙니다: " + value)))
+			.map(value -> Field.of(value).orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + value)))
 			.toList();
 		List<Company> companies = Optional.ofNullable(companyPostSearchRequest.companies())
 			.orElse(Collections.emptyList())
 			.stream()
-			.map(value -> Company.of(value).orElseThrow(() -> new ThreedBadRequestException("등록된 회사가 아닙니다: " + value)))
+			.map(value -> Company.of(value).orElseThrow(() -> new ThreedNotFoundException("등록된 회사가 아닙니다: " + value)))
 			.toList();
 		PageRequest pageRequest = PageRequest.of(companyPostSearchRequest.page() - 1, companyPostSearchRequest.size());
 		String keyword =
