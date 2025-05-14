@@ -67,7 +67,7 @@ public class Member {
 		boolean isAlreadyBookmarked = this.bookmarks.stream()
 			.anyMatch(bookmark -> bookmark.getPost().equals(post));
 		if (isAlreadyBookmarked) {
-			throw new ThreedConflictException("이미 북마크한 게시물입니다.");
+			throw new ThreedConflictException("이미 북마크한 포스트입니다.");
 		}
 	}
 
