@@ -37,7 +37,7 @@ public interface BookmarkControllerSwagger {
 		})
 	@SwaggerErrorCode400
 	@SwaggerErrorCode401
-	@SwaggerErrorCode404(description = "존재하지 않는 포스트인 경우")
+	@SwaggerErrorCode404(description = "존재하지 않는 포스트인 경우, 존재하지 않는 회원인 경우")
 	@SwaggerErrorCode500
 	ResponseEntity<Void> createBookmark(@Parameter(hidden = true) Member member, Long postId);
 
@@ -50,7 +50,7 @@ public interface BookmarkControllerSwagger {
 		})
 	@SwaggerErrorCode400
 	@SwaggerErrorCode401
-	@SwaggerErrorCode404(description = "존재하지 않는 포스트인 경우, 존재하지 않는 북마크인 경우")
+	@SwaggerErrorCode404(description = "존재하지 않는 포스트인 경우, 존재하지 않는 북마크인 경우, 존재하지 않는 회원인 경우")
 	@SwaggerErrorCode500
 	ResponseEntity<Void> deleteBookmark(@Parameter(hidden = true) Member member, Long postId);
 
@@ -63,6 +63,7 @@ public interface BookmarkControllerSwagger {
 		})
 	@SwaggerErrorCode400
 	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "존재하지 않는 회원인 경우")
 	@SwaggerErrorCode500
 	ResponseEntity<PageResponse<BookmarkedPostResponse>> findBookmarkedPosts(
 		@Parameter(hidden = true) Member member,
