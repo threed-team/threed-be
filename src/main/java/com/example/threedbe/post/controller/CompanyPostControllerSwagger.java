@@ -36,7 +36,7 @@ public interface CompanyPostControllerSwagger {
 
 	@Operation(
 		summary = "회사 포스트 상세 조회",
-		description = "인증은 선택적입니다. 인증된 사용자의 경우 북마크 여부가 추가 제공",
+		description = "인증은 선택적입니다. 인증된 사용자의 경우 북마크 여부(isBookmarked)가 추가 제공",
 		responses = {
 			@ApiResponse(
 				responseCode = "200",

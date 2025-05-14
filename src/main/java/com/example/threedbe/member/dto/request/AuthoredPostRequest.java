@@ -1,4 +1,4 @@
-package com.example.threedbe.bookmark.dto.request;
+package com.example.threedbe.member.dto.request;
 
 import org.springdoc.core.annotations.ParameterObject;
 
@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Positive;
 
 @ParameterObject
-public record BookmarkPageRequest(
+public record AuthoredPostRequest(
 
 	@Schema(description = "페이지 번호", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	@Positive

@@ -1,12 +1,18 @@
 package com.example.threedbe.member.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.common.exception.ThreedUnauthorizedException;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.member.dto.request.AuthoredPostRequest;
+import com.example.threedbe.member.dto.response.AuthoredPostResponse;
 import com.example.threedbe.member.repository.MemberRepository;
+import com.example.threedbe.post.repository.MemberPostRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class MemberService {
 
 	private final MemberRepository memberRepository;
+	private final MemberPostRepository memberPostRepository;
 
 	public Member findById(Long memberId) {
 		Member member = memberRepository.findById(memberId)
@@ -26,6 +33,20 @@ public class MemberService {
 		}
 
 		return member;
+	}
+
+	// TODO: N+1 문제 해결하기
+	public PageResponse<AuthoredPostResponse> findAuthoredPosts(
+		Member member,
+		AuthoredPostRequest authoredPostRequest) {
+
+		PageRequest pageRequest = PageRequest.of(authoredPostRequest.page() - 1, authoredPostRequest.size());
+		Page<AuthoredPostResponse> authoredPosts = memberPostRepository.findByMemberIdOrderByCreatedAtDesc(
+				member.getId(),
+				pageRequest)
+			.map(AuthoredPostResponse::from);
+
+		return PageResponse.from(authoredPosts);
 	}
 
 }

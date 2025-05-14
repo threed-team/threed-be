@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.threedbe.bookmark.dto.request.BookmarkPageRequest;
+import com.example.threedbe.bookmark.dto.request.BookmarkedPostRequest;
 import com.example.threedbe.bookmark.dto.response.BookmarkedPostResponse;
 import com.example.threedbe.bookmark.service.BookmarkService;
 import com.example.threedbe.common.annotation.LoginMember;
@@ -45,9 +45,9 @@ public class BookmarkController implements BookmarkControllerSwagger {
 	@GetMapping
 	public ResponseEntity<PageResponse<BookmarkedPostResponse>> findBookmarkedPosts(
 		@LoginMember Member member,
-		@Valid BookmarkPageRequest bookmarkPageRequest) {
+		@Valid BookmarkedPostRequest bookmarkedPostRequest) {
 
-		PageResponse<BookmarkedPostResponse> posts = bookmarkService.findBookmarkedPosts(member, bookmarkPageRequest);
+		PageResponse<BookmarkedPostResponse> posts = bookmarkService.findBookmarkedPosts(member, bookmarkedPostRequest);
 
 		return ResponseEntity.ok(posts);
 	}
