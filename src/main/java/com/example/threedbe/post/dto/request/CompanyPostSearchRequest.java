@@ -4,10 +4,13 @@ import static io.swagger.v3.oas.annotations.media.Schema.*;
 
 import java.util.List;
 
+import org.springdoc.core.annotations.ParameterObject;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Positive;
 
+@ParameterObject
 public record CompanyPostSearchRequest(
 
 	@Schema(description = "분야 이름 목록", example = "[\"Frontend\", \"Backend\", \"DevOps\"]")
