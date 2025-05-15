@@ -78,10 +78,10 @@ public interface CompanyPostRepository extends JpaRepository<CompanyPost, Long> 
 		Pageable pageable
 	);
 
-	@Query("SELECT p.id FROM Post p WHERE (p.createdAt < :createdAt) ORDER BY p.createdAt DESC LIMIT 1")
+	@Query("SELECT cp.id FROM CompanyPost cp WHERE (cp.createdAt < :createdAt) ORDER BY cp.createdAt DESC LIMIT 1")
 	Optional<Long> findNextId(@Param("createdAt") LocalDateTime createdAt);
 
-	@Query("SELECT p.id FROM Post p WHERE (p.createdAt > :createdAt) ORDER BY p.createdAt ASC LIMIT 1")
+	@Query("SELECT cp.id FROM CompanyPost cp WHERE (cp.createdAt > :createdAt) ORDER BY cp.createdAt ASC LIMIT 1")
 	Optional<Long> findPrevId(@Param("createdAt") LocalDateTime createdAt);
 
 }
