@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.threedbe.common.annotation.CurrentMember;
+import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.post.dto.request.CompanyPostPopularRequest;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
 import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
@@ -43,6 +45,16 @@ public class CompanyPostController implements CompanyPostControllerSwagger {
 		CompanyPostDetailResponse companyPostDetailResponse = companyPostService.findCompanyPostDetail(member, postId);
 
 		return ResponseEntity.ok(companyPostDetailResponse);
+	}
+
+	@GetMapping("/popular")
+	public ResponseEntity<ListResponse<CompanyPostResponse>> findPopularCompanyPosts(
+		@Valid CompanyPostPopularRequest companyPostPopularRequest) {
+
+		ListResponse<CompanyPostResponse> popularCompanyPosts =
+			companyPostService.findPopularCompanyPosts(companyPostPopularRequest);
+
+		return ResponseEntity.ok(popularCompanyPosts);
 	}
 
 }

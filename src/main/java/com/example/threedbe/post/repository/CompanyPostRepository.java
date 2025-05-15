@@ -84,4 +84,8 @@ public interface CompanyPostRepository extends JpaRepository<CompanyPost, Long> 
 	@Query("SELECT cp.id FROM CompanyPost cp WHERE (cp.createdAt > :createdAt) ORDER BY cp.createdAt ASC LIMIT 1")
 	Optional<Long> findPrevId(@Param("createdAt") LocalDateTime createdAt);
 
+	@Query("SELECT cp FROM CompanyPost cp WHERE cp.createdAt > :createdAt " +
+		"ORDER BY (cp.viewCount + SIZE(cp.bookmarks) * 2) DESC LIMIT 10")
+	List<CompanyPost> findCompanyPostsOrderByPopularity(@Param("createdAt") LocalDateTime createdAt);
+
 }
