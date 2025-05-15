@@ -47,7 +47,7 @@ public interface CompanyPostControllerSwagger {
 	@SwaggerErrorCode404(description = "회사 포스트가 존재하지 않는 경우")
 	@SwaggerErrorCode500
 	@SecurityRequirement(name = "Authorization")
-	ResponseEntity<CompanyPostDetailResponse> getCompanyPostDetail(
+	ResponseEntity<CompanyPostDetailResponse> findCompanyPostDetail(
 		@Parameter(hidden = true) Member member,
 		Long postId);
 

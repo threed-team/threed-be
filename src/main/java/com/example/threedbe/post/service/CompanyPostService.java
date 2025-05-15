@@ -97,7 +97,7 @@ public class CompanyPostService {
 
 	// TODO: 쿼리 수 줄이기
 	@Transactional
-	public CompanyPostDetailResponse getCompanyPostDetail(Member member, Long postId) {
+	public CompanyPostDetailResponse findCompanyPostDetail(Member member, Long postId) {
 		CompanyPost companyPost = companyPostRepository.findById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
 		companyPost.increaseViewCount();
