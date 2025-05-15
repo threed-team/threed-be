@@ -12,13 +12,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
+import com.example.threedbe.post.dto.request.CompanyPostPopularRequest;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
+import com.example.threedbe.post.dto.request.PopularCondition;
 import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.repository.CompanyPostRepository;
@@ -51,14 +54,14 @@ public class CompanyPostService {
 		Page<CompanyPostResponse> companyPostResponses;
 		if (companies.isEmpty()) {
 			if (fields.isEmpty()) {
-				companyPostResponses
-					= companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
-					.map(CompanyPostResponse::from);
+				companyPostResponses =
+					companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
+						.map(CompanyPostResponse::from);
 
 			} else {
-				companyPostResponses
-					= companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
-					.map(CompanyPostResponse::from);
+				companyPostResponses =
+					companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
+						.map(CompanyPostResponse::from);
 			}
 		} else if (companies.contains(Company.ETC)) {
 			List<Company> excludeCompanies = new ArrayList<>(Company.MAIN_COMPANIES);
@@ -82,13 +85,13 @@ public class CompanyPostService {
 			}
 		} else {
 			if (fields.isEmpty()) {
-				companyPostResponses
-					= companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
-					.map(CompanyPostResponse::from);
+				companyPostResponses =
+					companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
+						.map(CompanyPostResponse::from);
 			} else {
-				companyPostResponses
-					= companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
-					.map(CompanyPostResponse::from);
+				companyPostResponses =
+					companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
+						.map(CompanyPostResponse::from);
 			}
 		}
 
@@ -97,7 +100,7 @@ public class CompanyPostService {
 
 	// TODO: 쿼리 수 줄이기
 	@Transactional
-	public CompanyPostDetailResponse getCompanyPostDetail(Member member, Long postId) {
+	public CompanyPostDetailResponse findCompanyPostDetail(Member member, Long postId) {
 		CompanyPost companyPost = companyPostRepository.findById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
 		companyPost.increaseViewCount();
@@ -115,6 +118,27 @@ public class CompanyPostService {
 			.orElse(null);
 
 		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, isBookmarked, nextId, prevId);
+	}
+
+	// TODO: QueryDSL로 변경
+	public ListResponse<CompanyPostResponse> findPopularCompanyPosts(
+		CompanyPostPopularRequest companyPostPopularRequest) {
+		PopularCondition condition = companyPostPopularRequest.condition();
+
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime startDate;
+		if (condition.equals(PopularCondition.MONTH)) {
+			startDate = now.minusMonths(1);
+		} else {
+			startDate = now.minusWeeks(1);
+		}
+
+		List<CompanyPostResponse> posts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate).
+			stream()
+			.map(CompanyPostResponse::from)
+			.toList();
+
+		return ListResponse.from(posts);
 	}
 
 }
