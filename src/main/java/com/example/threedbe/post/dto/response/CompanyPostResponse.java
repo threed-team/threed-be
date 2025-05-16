@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 public record CompanyPostResponse(
 
-	@Schema(description = "포스트 아이디", example = "2")
+	@Schema(description = "포스트 아이디", example = "1")
 	long id,
 
 	@Schema(description = "제목", example = "FE News 25년 5월 소식을 전해드립니다!")
@@ -23,8 +23,8 @@ public record CompanyPostResponse(
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
-	@Schema(description = "소속 회사", example = "네이버")
-	String company,
+	@Schema(description = "소속 회사")
+	CompanyResponse company,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
 	LocalDateTime createdAt
@@ -36,9 +36,9 @@ public record CompanyPostResponse(
 			companyPost.getId(),
 			companyPost.getTitle(),
 			companyPost.getThumbnailImageUrl(),
-			companyPost.getField().getValue(),
+			companyPost.getField().getName(),
 			companyPost.getViewCount(),
-			companyPost.getCompany().getValue(),
+			CompanyResponse.from(companyPost.getCompany()),
 			companyPost.getCreatedAt()
 		);
 	}

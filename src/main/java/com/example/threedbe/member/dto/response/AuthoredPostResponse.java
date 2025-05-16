@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 public record AuthoredPostResponse(
 
-	@Schema(description = "포스트 아이디", example = "2")
+	@Schema(description = "포스트 아이디", example = "1")
 	long id,
 
 	@Schema(description = "제목", example = "FE News 25년 5월 소식을 전해드립니다!")
@@ -24,8 +24,8 @@ public record AuthoredPostResponse(
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
-	@Schema(description = "소속 회사", example = "네이버")
-	String company,
+	@Schema(description = "작성자")
+	MemberResponse member,
 
 	@Schema(description = "기술들", example = "[\"REACT\", \"JAVASCRIPT\"]")
 	List<String> skills,
@@ -40,9 +40,9 @@ public record AuthoredPostResponse(
 			memberPost.getId(),
 			memberPost.getTitle(),
 			memberPost.getThumbnailImageUrl(),
-			memberPost.getField().getValue(),
+			memberPost.getField().getName(),
 			memberPost.getViewCount(),
-			null,
+			MemberResponse.from(memberPost.getMember()),
 			memberPost.getSkills()
 				.stream()
 				.map(skill -> skill.getSkill().getName())

@@ -26,11 +26,11 @@ public enum Field {
 
 	ETC("기타");
 
-	private final String value;
+	private final String name;
 
-	public static Optional<Field> of(String value) {
+	public static Optional<Field> of(String name) {
 		return Arrays.stream(Field.values())
-			.filter(company -> company.getValue().equals(value))
+			.filter(company -> company.getName().equals(name))
 			.findFirst();
 	}
 
