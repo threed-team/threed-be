@@ -11,21 +11,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Company {
 
-	NAVER("네이버", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/naver.ico"),
+	NAVER("네이버", "https://cdn.threed.site/company-logo/naver.ico"),
 
-	KAKAO("카카오", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/kakao.ico"),
+	KAKAO("카카오", "https://cdn.threed.site/company-logo/kakao.ico"),
 
-	DEVOCEAN("데보션", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/devocean.ico"),
+	DEVOCEAN("데보션", "https://cdn.threed.site/company-logo/devocean.ico"),
 
-	TOSS("토스", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/toss.ico"),
+	TOSS("토스", "https://cdn.threed.site/company-logo/toss.ico"),
 
-	MY_REAL_TRIP("마이리얼트립", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/myrealtrip.ico"),
+	MY_REAL_TRIP("마이리얼트립", "https://cdn.threed.site/company-logo/myrealtrip.ico"),
 
-	LINE("라인", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/line.ico"),
+	LINE("라인", "https://cdn.threed.site/company-logo/line.ico"),
 
-	DAANGN("당근마켓", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/daangn.ico"),
+	DAANGN("당근마켓", "https://cdn.threed.site/company-logo/daangn.ico"),
 
-	OLIVE_YOUNG("올리브영", "https://d1yuiaae3wriwc.cloudfront.net/company-logo/oliveyoung.webp"),
+	OLIVE_YOUNG("올리브영", "https://cdn.threed.site/company-logo/oliveyoung.webp"),
 
 	ETC("기타", null);
 
