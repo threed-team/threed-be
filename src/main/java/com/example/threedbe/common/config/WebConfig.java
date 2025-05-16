@@ -1,5 +1,7 @@
 package com.example.threedbe.common.config;
 
+import static org.springframework.http.HttpHeaders.*;
+
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -33,9 +35,9 @@ public class WebConfig implements WebMvcConfigurer {
 	public void addCorsMappings(CorsRegistry registry) {
 		registry.addMapping("/api/**")
 			.allowedOriginPatterns(allowedOrigins)
-			.allowedMethods("GET", "POST", "HEAD", "PATCH", "PUT", "DELETE")
+			.allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE")
 			.allowCredentials(true)
-			.exposedHeaders("Authorization")
+			.exposedHeaders(AUTHORIZATION)
 			.maxAge(3600);
 	}
 
