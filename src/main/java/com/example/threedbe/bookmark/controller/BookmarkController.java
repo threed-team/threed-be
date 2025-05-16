@@ -27,7 +27,7 @@ public class BookmarkController implements BookmarkControllerSwagger {
 
 	@Override
 	@PostMapping("/{postId}")
-	public ResponseEntity<Void> createBookmark(@LoginMember Member member, @PathVariable Long postId) {
+	public ResponseEntity<Void> createBookmark(@LoginMember Member member, @PathVariable("postId") Long postId) {
 		bookmarkService.createBookmark(member, postId);
 
 		return ResponseEntity.ok().build();
@@ -35,7 +35,7 @@ public class BookmarkController implements BookmarkControllerSwagger {
 
 	@Override
 	@DeleteMapping("/{postId}")
-	public ResponseEntity<Void> deleteBookmark(@LoginMember Member member, @PathVariable Long postId) {
+	public ResponseEntity<Void> deleteBookmark(@LoginMember Member member, @PathVariable("postId") Long postId) {
 		bookmarkService.deleteBookmark(member, postId);
 
 		return ResponseEntity.ok().build();
