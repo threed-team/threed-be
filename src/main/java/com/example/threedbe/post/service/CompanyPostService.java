@@ -14,14 +14,15 @@ import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
+import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
+import com.example.threedbe.post.domain.PopularCondition;
 import com.example.threedbe.post.dto.request.CompanyPostPopularRequest;
 import com.example.threedbe.post.dto.request.CompanyPostSearchRequest;
-import com.example.threedbe.post.dto.request.PopularCondition;
 import com.example.threedbe.post.dto.response.CompanyPostDetailResponse;
 import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.repository.CompanyPostRepository;
@@ -123,18 +124,13 @@ public class CompanyPostService {
 	// TODO: QueryDSL로 변경
 	public ListResponse<CompanyPostResponse> findPopularCompanyPosts(
 		CompanyPostPopularRequest companyPostPopularRequest) {
-		PopularCondition condition = companyPostPopularRequest.condition();
 
-		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime startDate;
-		if (condition.equals(PopularCondition.MONTH)) {
-			startDate = now.minusMonths(1);
-		} else {
-			startDate = now.minusWeeks(1);
-		}
+		PopularCondition condition = PopularCondition.of(companyPostPopularRequest.condition())
+			.orElseThrow(() -> new ThreedBadRequestException("잘못된 인기 조건입니다: " + companyPostPopularRequest.condition()));
 
-		List<CompanyPostResponse> posts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate).
-			stream()
+		LocalDateTime startDate = condition.calculateStartDate(LocalDateTime.now());
+
+		List<CompanyPostResponse> posts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate).stream()
 			.map(CompanyPostResponse::from)
 			.toList();
 
