@@ -29,13 +29,16 @@ public enum Company {
 
 	ETC("기타", null);
 
-	private final String value;
+	private final String name;
 
 	private final String logoImageUrl;
 
-	public static Optional<Company> of(String value) {
+	public static final List<Company> MAIN_COMPANIES =
+		List.of(NAVER, KAKAO, DEVOCEAN, TOSS, MY_REAL_TRIP, LINE, DAANGN);
+
+	public static Optional<Company> of(String name) {
 		return Arrays.stream(Company.values())
-			.filter(company -> company.getValue().equals(value))
+			.filter(company -> company.getName().equals(name))
 			.findFirst();
 	}
 
