@@ -40,7 +40,7 @@ public class CompanyPostController implements CompanyPostControllerSwagger {
 	@GetMapping("/{postId}")
 	public ResponseEntity<CompanyPostDetailResponse> findCompanyPostDetail(
 		@CurrentMember Member member,
-		@PathVariable Long postId) {
+		@PathVariable("postId") Long postId) {
 
 		CompanyPostDetailResponse companyPostDetailResponse = companyPostService.findCompanyPostDetail(member, postId);
 
