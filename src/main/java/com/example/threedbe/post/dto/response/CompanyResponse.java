@@ -9,7 +9,7 @@ public record CompanyResponse(
 	@Schema(description = "소속 회사 이름", example = "네이버")
 	String name,
 
-	@Schema(description = "소속 회사 이미지 주소", example = "https://threed-uploaded-files.s3.ap-northeast-2.amazonaws.com/company-logo/naver.ico")
+	@Schema(description = "소속 회사 이미지 주소", example = "https://cdn.threed.site/company-logo/naver.ico")
 	String logoImageUrl
 
 ) {
