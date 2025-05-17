@@ -10,11 +10,22 @@ public record BookmarkedPostRequest(
 
 	@Schema(description = "페이지 번호", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	@Positive
-	int page,
+	Integer page,
 
 	@Schema(description = "페이지 크기", example = "10", requiredMode = Schema.RequiredMode.REQUIRED)
 	@Positive
-	int size
+	Integer size
 
 ) {
+
+	public BookmarkedPostRequest {
+		if (page == null) {
+			page = 1;
+		}
+
+		if (size == null) {
+			size = 20;
+		}
+	}
+
 }
