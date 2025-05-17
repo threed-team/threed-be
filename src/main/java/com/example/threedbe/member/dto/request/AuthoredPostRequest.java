@@ -10,11 +10,22 @@ public record AuthoredPostRequest(
 
 	@Schema(description = "페이지 번호", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	@Positive
-	int page,
+	Integer page,
 
 	@Schema(description = "페이지 크기", example = "10", requiredMode = Schema.RequiredMode.REQUIRED)
 	@Positive
-	int size
+	Integer size
 
 ) {
+
+	public AuthoredPostRequest {
+		if (page == null) {
+			page = 1;
+		}
+
+		if (size == null) {
+			size = 20;
+		}
+	}
+
 }
