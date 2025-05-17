@@ -16,11 +16,11 @@ public record CompanyPostSearchRequest(
 	@Schema(description = "회사 이름 목록", example = "[\"네이버\", \"카카오\", \"라인\"]")
 	List<String> companies,
 
-	@Schema(description = "페이지 번호", example = "1", requiredMode = RequiredMode.REQUIRED)
+	@Schema(description = "페이지 번호", example = "1")
 	@Positive
 	Integer page,
 
-	@Schema(description = "페이지 크기", example = "10", requiredMode = RequiredMode.REQUIRED)
+	@Schema(description = "페이지 크기", example = "10")
 	@Positive
 	Integer size,
 
