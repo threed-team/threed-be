@@ -56,6 +56,7 @@ public interface BookmarkControllerSwagger {
 
 	@Operation(
 		summary = "북마크된 포스트 리스트 조회",
+		description = "page, size 없이 요청하면 기본값으로 page=1, size=20이 적용됩니다.",
 		responses = {
 			@ApiResponse(
 				responseCode = "200",

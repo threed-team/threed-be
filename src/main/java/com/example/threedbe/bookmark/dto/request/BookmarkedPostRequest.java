@@ -8,11 +8,11 @@ import jakarta.validation.constraints.Positive;
 @ParameterObject
 public record BookmarkedPostRequest(
 
-	@Schema(description = "페이지 번호", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "페이지 번호", example = "1")
 	@Positive
 	Integer page,
 
-	@Schema(description = "페이지 크기", example = "10", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "페이지 크기", example = "20")
 	@Positive
 	Integer size
 
