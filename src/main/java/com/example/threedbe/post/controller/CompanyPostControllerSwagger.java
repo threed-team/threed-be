@@ -56,6 +56,7 @@ public interface CompanyPostControllerSwagger {
 
 	@Operation(
 		summary = "인기 회사 포스트 리스트 조회",
+		description = "인기 조건은 WEEK, MONTH 중 하나로 설정 가능하며, 기본값은 WEEK입니다.",
 		responses = {
 			@ApiResponse(
 				responseCode = "200",
