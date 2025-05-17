@@ -13,4 +13,11 @@ public record CompanyPostPopularRequest(
 	String condition
 
 ) {
+
+	public CompanyPostPopularRequest {
+		if (condition == null) {
+			condition = "WEEK";
+		}
+	}
+
 }
