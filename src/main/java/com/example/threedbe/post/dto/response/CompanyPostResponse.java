@@ -27,11 +27,17 @@ public record CompanyPostResponse(
 	CompanyResponse company,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
-	LocalDateTime createdAt
+	LocalDateTime createdAt,
+
+	@Schema(description = "신규 포스트 여부", example = "true")
+	boolean isNew,
+
+	@Schema(description = "인기 포스트 여부", example = "true")
+	boolean isHot
 
 ) {
 
-	public static CompanyPostResponse from(CompanyPost companyPost) {
+	public static CompanyPostResponse from(CompanyPost companyPost, boolean isNew, boolean isHot) {
 		return new CompanyPostResponse(
 			companyPost.getId(),
 			companyPost.getTitle(),
@@ -39,7 +45,9 @@ public record CompanyPostResponse(
 			companyPost.getField().getName(),
 			companyPost.getViewCount(),
 			CompanyResponse.from(companyPost.getCompany()),
-			companyPost.getCreatedAt()
+			companyPost.getCreatedAt(),
+			isNew,
+			isHot
 		);
 	}
 

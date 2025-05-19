@@ -52,17 +52,30 @@ public class CompanyPostService {
 		String keyword =
 			StringUtils.hasText(companyPostSearchRequest.keyword()) ? companyPostSearchRequest.keyword() : null;
 
+		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
+		List<CompanyPost> popularPosts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate);
+
+		LocalDateTime now = LocalDateTime.now();
 		Page<CompanyPostResponse> companyPostResponses;
 		if (companies.isEmpty()) {
 			if (fields.isEmpty()) {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
-						.map(CompanyPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
 
+							return CompanyPostResponse.from(post, isNew, isHot);
+						});
 			} else {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
-						.map(CompanyPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return CompanyPostResponse.from(post, isNew, isHot);
+						});
 			}
 		} else if (companies.contains(Company.ETC)) {
 			List<Company> excludeCompanies = new ArrayList<>(Company.MAIN_COMPANIES);
@@ -75,24 +88,44 @@ public class CompanyPostService {
 						excludeCompanies,
 						keyword,
 						pageRequest)
-					.map(CompanyPostResponse::from);
+					.map(post -> {
+						boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+						boolean isHot = popularPosts.contains(post);
+
+						return CompanyPostResponse.from(post, isNew, isHot);
+					});
 			} else {
 				companyPostResponses = companyPostRepository.searchCompanyPostsWithFieldsExcludeCompanies(
 						fields,
 						excludeCompanies,
 						keyword,
 						pageRequest)
-					.map(CompanyPostResponse::from);
+					.map(post -> {
+						boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+						boolean isHot = popularPosts.contains(post);
+
+						return CompanyPostResponse.from(post, isNew, isHot);
+					});
 			}
 		} else {
 			if (fields.isEmpty()) {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
-						.map(CompanyPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return CompanyPostResponse.from(post, isNew, isHot);
+						});
 			} else {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
-						.map(CompanyPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return CompanyPostResponse.from(post, isNew, isHot);
+						});
 			}
 		}
 
@@ -128,10 +161,15 @@ public class CompanyPostService {
 		PopularCondition condition = PopularCondition.of(companyPostPopularRequest.condition())
 			.orElseThrow(() -> new ThreedBadRequestException("잘못된 인기 조건입니다: " + companyPostPopularRequest.condition()));
 
-		LocalDateTime startDate = condition.calculateStartDate(LocalDateTime.now());
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime startDate = condition.calculateStartDate(now);
 
 		List<CompanyPostResponse> posts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate).stream()
-			.map(CompanyPostResponse::from)
+			.map(post -> {
+				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+
+				return CompanyPostResponse.from(post, isNew, true);
+			})
 			.toList();
 
 		return ListResponse.from(posts);
