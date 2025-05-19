@@ -16,10 +16,11 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/member-posts")
 @RequiredArgsConstructor
-public class MemberPostController {
+public class MemberPostController implements MemberPostControllerSwagger {
 
 	private final MemberPostService memberPostService;
 
+	@Override
 	@GetMapping("/search")
 	public ResponseEntity<PageResponse<MemberPostResponse>> search(
 		@Valid MemberPostSearchRequest memberPostSearchRequest) {
