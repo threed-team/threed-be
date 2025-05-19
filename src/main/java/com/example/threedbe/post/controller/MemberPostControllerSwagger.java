@@ -6,11 +6,17 @@ import com.example.threedbe.common.annotation.SwaggerErrorCode400;
 import com.example.threedbe.common.annotation.SwaggerErrorCode404;
 import com.example.threedbe.common.annotation.SwaggerErrorCode500;
 import com.example.threedbe.common.dto.PageResponse;
+import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
+import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "MemberPost API")
@@ -28,5 +34,22 @@ public interface MemberPostControllerSwagger {
 	@SwaggerErrorCode404(description = "등록된 기술, 분야가 아닌 경우")
 	@SwaggerErrorCode500
 	ResponseEntity<PageResponse<MemberPostResponse>> search(MemberPostSearchRequest memberPostSearchRequest);
+
+	@Operation(
+		summary = "회원 포스트 상세 조회",
+		description = "인증은 선택적입니다. 인증된 사용자의 경우 북마크 여부(isBookmarked), 내 포스트 여부(isMyPost)가 추가 제공",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "회원 포스트 상세 조회 성공",
+				content = @Content(schema = @Schema(implementation = MemberPostDetailResponse.class))),
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
+	@SecurityRequirement(name = "Authorization")
+	ResponseEntity<MemberPostDetailResponse> findMemberPostDetail(
+		@Parameter(hidden = true) Member member,
+		Long postId);
 
 }
