@@ -1,6 +1,8 @@
 package com.example.threedbe.post.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,5 +78,11 @@ public interface MemberPostRepository extends JpaRepository<MemberPost, Long> {
 		@Param("keyword") String keyword,
 		Pageable pageable
 	);
+
+	@Query("SELECT mp.id FROM MemberPost mp WHERE (mp.createdAt < :createdAt) ORDER BY mp.createdAt DESC LIMIT 1")
+	Optional<Long> findNextId(@Param("createdAt") LocalDateTime createdAt);
+
+	@Query("SELECT mp.id FROM MemberPost mp WHERE (mp.createdAt > :createdAt) ORDER BY mp.createdAt ASC LIMIT 1")
+	Optional<Long> findPrevId(@Param("createdAt") LocalDateTime createdAt);
 
 }

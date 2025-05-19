@@ -2,6 +2,7 @@ package com.example.threedbe.post.service;
 
 import static com.example.threedbe.post.domain.Skill.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -15,9 +16,12 @@ import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
+import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Field;
+import com.example.threedbe.post.domain.MemberPost;
 import com.example.threedbe.post.domain.Skill;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
+import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.repository.MemberPostRepository;
 
@@ -101,6 +105,29 @@ public class MemberPostService {
 		}
 
 		return PageResponse.from(memberPostResponses);
+	}
+
+	@Transactional
+	public MemberPostDetailResponse findMemberPostDetail(Member member, Long postId) {
+		MemberPost memberPost = memberPostRepository.findById(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+		memberPost.increaseViewCount();
+
+		int bookmarkCount = memberPost.getBookmarkCount();
+
+		boolean isBookmarked = memberPost.getBookmarks()
+			.stream()
+			.anyMatch(bookmark -> bookmark.getMember().equals(member));
+
+		boolean isMyPost = memberPost.getMember().equals(member);
+
+		LocalDateTime createdAt = memberPost.getCreatedAt();
+		Long nextId = memberPostRepository.findNextId(createdAt)
+			.orElse(null);
+		Long prevId = memberPostRepository.findPrevId(createdAt)
+			.orElse(null);
+
+		return MemberPostDetailResponse.from(memberPost, bookmarkCount, isBookmarked, isMyPost, nextId, prevId);
 	}
 
 }
