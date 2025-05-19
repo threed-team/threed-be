@@ -5,8 +5,10 @@ import org.springframework.http.ResponseEntity;
 import com.example.threedbe.common.annotation.SwaggerErrorCode400;
 import com.example.threedbe.common.annotation.SwaggerErrorCode404;
 import com.example.threedbe.common.annotation.SwaggerErrorCode500;
+import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
@@ -51,5 +53,18 @@ public interface MemberPostControllerSwagger {
 	ResponseEntity<MemberPostDetailResponse> findMemberPostDetail(
 		@Parameter(hidden = true) Member member,
 		Long postId);
+
+	@Operation(
+		summary = "인기 회원 포스트 리스트 조회",
+		description = "인기 조건은 WEEK, MONTH 중 하나로 설정 가능하며, 기본값은 WEEK입니다.",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "인기 회원 포스트 리스트 조회 성공")
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode500
+	ResponseEntity<ListResponse<MemberPostResponse>> findPopularMemberPosts(
+		MemberPostPopularRequest memberPostPopularRequest);
 
 }

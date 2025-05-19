@@ -85,4 +85,8 @@ public interface MemberPostRepository extends JpaRepository<MemberPost, Long> {
 	@Query("SELECT mp.id FROM MemberPost mp WHERE (mp.createdAt > :createdAt) ORDER BY mp.createdAt ASC LIMIT 1")
 	Optional<Long> findPrevId(@Param("createdAt") LocalDateTime createdAt);
 
+	@Query("SELECT mp FROM MemberPost mp WHERE mp.createdAt > :createdAt " +
+		"ORDER BY (mp.viewCount + SIZE(mp.bookmarks) * 2) DESC LIMIT 10")
+	List<MemberPost> findMemberPostsOrderByPopularity(@Param("createdAt") LocalDateTime createdAt);
+
 }
