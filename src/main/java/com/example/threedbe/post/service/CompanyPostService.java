@@ -48,13 +48,12 @@ public class CompanyPostService {
 			.stream()
 			.map(name -> Company.of(name).orElseThrow(() -> new ThreedNotFoundException("등록된 회사가 아닙니다: " + name)))
 			.toList();
+
 		PageRequest pageRequest = PageRequest.of(companyPostSearchRequest.page() - 1, companyPostSearchRequest.size());
 		String keyword =
 			StringUtils.hasText(companyPostSearchRequest.keyword()) ? companyPostSearchRequest.keyword() : null;
-
 		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
 		List<CompanyPost> popularPosts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate);
-
 		LocalDateTime now = LocalDateTime.now();
 		Page<CompanyPostResponse> companyPostResponses;
 		if (companies.isEmpty()) {
