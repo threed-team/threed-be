@@ -34,6 +34,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		return ResponseEntity.ok(search);
 	}
 
+	@Override
 	@GetMapping("/{postId}")
 	public ResponseEntity<MemberPostDetailResponse> findMemberPostDetail(
 		@CurrentMember Member member,
