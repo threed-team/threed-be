@@ -1,5 +1,7 @@
 package com.example.threedbe.post.domain;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,6 +17,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Skill {
+
+	public static final List<String> MAIN_SKILLS =
+		List.of("JAVA", "SPRING", "NEXT.JS", "REACT", "JAVASCRIPT", "NODE.JS", "TYPESCRIPT", Skill.ETC);
+
+	public static final String ETC = "기타";
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
