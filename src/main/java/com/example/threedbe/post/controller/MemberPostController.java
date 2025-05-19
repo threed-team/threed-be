@@ -47,6 +47,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		return ResponseEntity.ok(memberPostDetailResponse);
 	}
 
+	@Override
 	@GetMapping("/popular")
 	public ResponseEntity<ListResponse<MemberPostResponse>> findPopularMemberPosts(
 		@Valid MemberPostPopularRequest memberPostPopularRequest) {
