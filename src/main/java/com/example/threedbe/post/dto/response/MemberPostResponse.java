@@ -32,11 +32,17 @@ public record MemberPostResponse(
 	List<String> skills,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
-	LocalDateTime createdAt
+	LocalDateTime createdAt,
+
+	@Schema(description = "신규 포스트 여부", example = "true")
+	boolean isNew,
+
+	@Schema(description = "인기 포스트 여부", example = "true")
+	boolean isHot
 
 ) {
 
-	public static MemberPostResponse from(MemberPost memberPost) {
+	public static MemberPostResponse from(MemberPost memberPost, boolean isNew, boolean isHot) {
 		return new MemberPostResponse(
 			memberPost.getId(),
 			memberPost.getTitle(),
@@ -48,7 +54,9 @@ public record MemberPostResponse(
 				.stream()
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
-			memberPost.getCreatedAt()
+			memberPost.getCreatedAt(),
+			isNew,
+			isHot
 		);
 	}
 
