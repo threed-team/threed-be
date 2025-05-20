@@ -24,10 +24,13 @@ import com.example.threedbe.post.domain.MemberPost;
 import com.example.threedbe.post.domain.PopularCondition;
 import com.example.threedbe.post.domain.Skill;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
+import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
+import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.repository.MemberPostRepository;
+import com.example.threedbe.post.repository.SkillRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,12 +40,39 @@ import lombok.RequiredArgsConstructor;
 public class MemberPostService {
 
 	private final MemberPostRepository memberPostRepository;
+	private final SkillRepository skillRepository;
 
 	@Transactional
-	public Long saveDraft(Member member) {
-		MemberPost savedMemberPost = memberPostRepository.save(new MemberPost(member));
+	public MemberPostSaveResponse saveDraft(Member member) {
+		MemberPost memberPost = memberPostRepository.save(new MemberPost(member));
 
-		return savedMemberPost.getId();
+		return MemberPostSaveResponse.from(memberPost);
+	}
+
+	@Transactional
+	public MemberPostSaveResponse save(Member member, Long postId, MemberPostSaveRequest memberPostSaveRequest) {
+		MemberPost memberPost = memberPostRepository.findById(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+
+		if (!memberPost.getMember().equals(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
+		}
+
+		Field field = Field.of(memberPostSaveRequest.field())
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + memberPostSaveRequest.field()));
+		List<Skill> skills = memberPostSaveRequest.skills()
+			.stream()
+			.map(skillName -> skillRepository.findByName(skillName)
+				.orElseGet(() -> skillRepository.save(new Skill(skillName))))
+			.toList();
+
+		if (memberPost.isNotDraft()) {
+			throw new ThreedBadRequestException("이미 릴리즈된 포스트입니다: " + postId);
+		}
+
+		memberPost.release(memberPostSaveRequest.title(), memberPostSaveRequest.content(), field, skills);
+
+		return MemberPostSaveResponse.from(memberPost);
 	}
 
 	// TODO: QueryDSL로 변경

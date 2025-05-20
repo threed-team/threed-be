@@ -3,6 +3,9 @@ package com.example.threedbe.post.domain;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+
 import com.example.threedbe.member.domain.Member;
 
 import jakarta.persistence.CascadeType;
@@ -20,6 +23,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "member_posts")
 @Entity
 @Getter
+@Filter(name = "releasedPostFilter", condition = "released_at IS NOT NULL")
+@FilterDef(name = "releasedPostFilter")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("MEMBER")
 public class MemberPost extends Post {
@@ -38,6 +43,20 @@ public class MemberPost extends Post {
 
 	public MemberPost(Member member) {
 		this.member = member;
+	}
+
+	public boolean isNotDraft() {
+		return releasedAt != null;
+	}
+
+	public void release(String title, String content, Field field, List<Skill> skills) {
+		super.update(title, content, field);
+		skills.forEach(this::addSkill);
+		this.releasedAt = LocalDateTime.now();
+	}
+
+	private void addSkill(Skill skill) {
+		this.skills.add(new MemberPostSkill(this, skill));
 	}
 
 }
