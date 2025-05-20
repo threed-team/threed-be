@@ -72,7 +72,7 @@ public record BookmarkedPostResponse(
 				.stream()
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
-			memberPost.getCreatedAt(),
+			memberPost.getReleasedAt(),
 			isNew,
 			isHot
 		);

@@ -61,7 +61,7 @@ public record MemberPostDetailResponse(
 			memberPost.getThumbnailImageUrl(),
 			memberPost.getViewCount(),
 			AuthorResponse.from(memberPost.getMember()),
-			memberPost.getCreatedAt(),
+			memberPost.getReleasedAt(),
 			bookmarkCount,
 			isBookmarked,
 			isMyPost,
