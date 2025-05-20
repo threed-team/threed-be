@@ -28,6 +28,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 
 	private final MemberPostService memberPostService;
 
+	@Override
 	@PostMapping
 	public ResponseEntity<Long> saveDraft(@LoginMember Member member) {
 		Long postId = memberPostService.saveDraft(member);

@@ -3,6 +3,7 @@ package com.example.threedbe.post.controller;
 import org.springframework.http.ResponseEntity;
 
 import com.example.threedbe.common.annotation.SwaggerErrorCode400;
+import com.example.threedbe.common.annotation.SwaggerErrorCode401;
 import com.example.threedbe.common.annotation.SwaggerErrorCode404;
 import com.example.threedbe.common.annotation.SwaggerErrorCode500;
 import com.example.threedbe.common.dto.ListResponse;
@@ -23,6 +24,19 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "MemberPost API")
 public interface MemberPostControllerSwagger {
+
+	@Operation(
+		summary = "회원 포스트 임시 생성",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "회원 포스트 임시 생성 성공")
+		})
+	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
+	@SecurityRequirement(name = "Authorization")
+	ResponseEntity<Long> saveDraft(@Parameter(hidden = true) Member member);
 
 	@Operation(
 		summary = "회원 포스트 검색",
