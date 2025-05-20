@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -13,6 +14,7 @@ import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
+import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
@@ -34,6 +36,18 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		Long postId = memberPostService.saveDraft(member);
 
 		return ResponseEntity.ok(postId);
+	}
+
+	@PostMapping("/{postId}")
+	public ResponseEntity<Long> save(
+		@LoginMember Member member,
+		@PathVariable("postId") Long postId,
+		@RequestBody @Valid MemberPostSaveRequest memberPostSaveRequest
+	) {
+
+		Long savedPostId = memberPostService.save(member, postId, memberPostSaveRequest);
+
+		return ResponseEntity.ok(savedPostId);
 	}
 
 	@Override

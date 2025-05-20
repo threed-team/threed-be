@@ -31,4 +31,9 @@ public class MemberPostSkill {
 	@JoinColumn(name = "skill_id", nullable = false)
 	private Skill skill;
 
+	public MemberPostSkill(MemberPost memberPost, Skill skill) {
+		this.memberPost = memberPost;
+		this.skill = skill;
+	}
+
 }

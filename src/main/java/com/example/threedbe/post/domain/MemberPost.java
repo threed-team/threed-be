@@ -40,4 +40,18 @@ public class MemberPost extends Post {
 		this.member = member;
 	}
 
+	public boolean isNotDraft() {
+		return releasedAt != null;
+	}
+
+	public void release(String title, String content, Field field, List<Skill> skills) {
+		super.update(title, content, field);
+		skills.forEach(this::addSkill);
+		this.releasedAt = LocalDateTime.now();
+	}
+
+	private void addSkill(Skill skill) {
+		this.skills.add(new MemberPostSkill(this, skill));
+	}
+
 }
