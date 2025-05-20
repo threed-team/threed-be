@@ -1,5 +1,6 @@
 package com.example.threedbe.post.domain;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.threedbe.member.domain.Member;
@@ -32,5 +33,7 @@ public class MemberPost extends Post {
 
 	@OneToMany(mappedBy = "memberPost", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MemberPostSkill> skills;
+
+	private LocalDateTime releasedAt;
 
 }
