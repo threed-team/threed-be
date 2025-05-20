@@ -60,20 +60,31 @@ public class MemberPostService {
 			.toList();
 
 		PageRequest pageRequest = PageRequest.of(memberPostSearchRequest.page() - 1, memberPostSearchRequest.size());
-
 		String keyword =
 			StringUtils.hasText(memberPostSearchRequest.keyword()) ? memberPostSearchRequest.keyword() : null;
-
+		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
+		List<MemberPost> popularPosts = memberPostRepository.findMemberPostsOrderByPopularity(startDate);
+		LocalDateTime now = LocalDateTime.now();
 		Page<MemberPostResponse> memberPostResponses;
 		if (skillNames.isEmpty()) {
 			if (fields.isEmpty()) {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsAll(keyword, pageRequest)
-						.map(MemberPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return MemberPostResponse.from(post, isNew, isHot);
+						});
 			} else {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
-						.map(MemberPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return MemberPostResponse.from(post, isNew, isHot);
+						});
 			}
 		} else if (skillNames.contains(Skill.ETC)) {
 			List<String> targetSkillNames = new ArrayList<>(MAIN_SKILLS);
@@ -87,7 +98,12 @@ public class MemberPostService {
 							targetSkillNames,
 							keyword,
 							pageRequest)
-						.map(MemberPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return MemberPostResponse.from(post, isNew, isHot);
+						});
 			} else {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFieldsExcludeCompanies(
@@ -95,17 +111,32 @@ public class MemberPostService {
 							targetSkillNames,
 							keyword,
 							pageRequest)
-						.map(MemberPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return MemberPostResponse.from(post, isNew, isHot);
+						});
 			}
 		} else {
 			if (fields.isEmpty()) {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithoutFields(skillNames, keyword, pageRequest)
-						.map(MemberPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return MemberPostResponse.from(post, isNew, isHot);
+						});
 			} else {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFields(fields, skillNames, keyword, pageRequest)
-						.map(MemberPostResponse::from);
+						.map(post -> {
+							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isHot = popularPosts.contains(post);
+
+							return MemberPostResponse.from(post, isNew, isHot);
+						});
 			}
 		}
 
@@ -144,10 +175,15 @@ public class MemberPostService {
 		PopularCondition condition = PopularCondition.of(conditionName)
 			.orElseThrow(() -> new ThreedBadRequestException("잘못된 인기 조건입니다: " + conditionName));
 
-		LocalDateTime startDate = condition.calculateStartDate(LocalDateTime.now());
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime startDate = condition.calculateStartDate(now);
 
 		List<MemberPostResponse> posts = memberPostRepository.findMemberPostsOrderByPopularity(startDate).stream()
-			.map(MemberPostResponse::from)
+			.map(post -> {
+				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+
+				return MemberPostResponse.from(post, isNew, true);
+			})
 			.toList();
 
 		return ListResponse.from(posts);

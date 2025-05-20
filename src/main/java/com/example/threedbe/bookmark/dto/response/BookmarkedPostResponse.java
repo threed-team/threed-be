@@ -3,11 +3,9 @@ package com.example.threedbe.bookmark.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.member.dto.response.MemberResponse;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.MemberPost;
-import com.example.threedbe.post.domain.Post;
 import com.example.threedbe.post.dto.response.CompanyResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -39,21 +37,18 @@ public record BookmarkedPostResponse(
 	List<String> skills,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
-	LocalDateTime createdAt
+	LocalDateTime createdAt,
+
+	@Schema(description = "신규 포스트 여부", example = "true")
+	boolean isNew,
+
+	@Schema(description = "인기 포스트 여부", example = "true")
+	boolean isHot
 
 ) {
 
-	public static BookmarkedPostResponse from(Post post) {
-		if (post instanceof CompanyPost companyPost) {
-			return from(companyPost);
-		} else if (post instanceof MemberPost memberPost) {
-			return from(memberPost);
-		} else {
-			throw new ThreedBadRequestException("지원하지 않는 게시글 타입입니다.");
-		}
-	}
+	public static BookmarkedPostResponse from(CompanyPost companyPost, boolean isNew, boolean isHot) {
 
-	private static BookmarkedPostResponse from(CompanyPost companyPost) {
 		return new BookmarkedPostResponse(
 			companyPost.getId(),
 			companyPost.getTitle(),
@@ -63,11 +58,14 @@ public record BookmarkedPostResponse(
 			CompanyResponse.from(companyPost.getCompany()),
 			null,
 			null,
-			companyPost.getCreatedAt()
+			companyPost.getCreatedAt(),
+			isNew,
+			isHot
 		);
 	}
 
-	private static BookmarkedPostResponse from(MemberPost memberPost) {
+	public static BookmarkedPostResponse from(MemberPost memberPost, boolean isNew, boolean isHot) {
+
 		return new BookmarkedPostResponse(
 			memberPost.getId(),
 			memberPost.getTitle(),
@@ -80,7 +78,9 @@ public record BookmarkedPostResponse(
 				.stream()
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
-			memberPost.getCreatedAt()
+			memberPost.getCreatedAt(),
+			isNew,
+			isHot
 		);
 	}
 

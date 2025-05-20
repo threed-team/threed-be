@@ -1,5 +1,8 @@
 package com.example.threedbe.member.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,8 @@ import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.member.dto.request.AuthoredPostRequest;
 import com.example.threedbe.member.dto.response.AuthoredPostResponse;
 import com.example.threedbe.member.repository.MemberRepository;
+import com.example.threedbe.post.domain.MemberPost;
+import com.example.threedbe.post.domain.PopularCondition;
 import com.example.threedbe.post.repository.MemberPostRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -40,11 +45,21 @@ public class MemberService {
 		Member member,
 		AuthoredPostRequest authoredPostRequest) {
 
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
+		List<MemberPost> popularPosts = memberPostRepository.findMemberPostsOrderByPopularity(startDate);
+
 		PageRequest pageRequest = PageRequest.of(authoredPostRequest.page() - 1, authoredPostRequest.size());
 		Page<AuthoredPostResponse> authoredPosts = memberPostRepository.findByMemberIdOrderByCreatedAtDesc(
 				member.getId(),
 				pageRequest)
-			.map(AuthoredPostResponse::from);
+			.map(post -> {
+				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+
+				boolean isHot = popularPosts.contains(post);
+
+				return AuthoredPostResponse.from(post, isNew, isHot);
+			});
 
 		return PageResponse.from(authoredPosts);
 	}
