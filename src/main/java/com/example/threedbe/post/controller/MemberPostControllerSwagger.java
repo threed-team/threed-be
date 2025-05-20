@@ -10,9 +10,11 @@ import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
+import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
+import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,12 +32,31 @@ public interface MemberPostControllerSwagger {
 		responses = {
 			@ApiResponse(
 				responseCode = "200",
-				description = "회원 포스트 임시 생성 성공")
+				description = "회원 포스트 임시 생성 성공",
+				content = @Content(schema = @Schema(implementation = MemberPostSaveResponse.class)))
 		})
 	@SwaggerErrorCode401
 	@SwaggerErrorCode500
 	@SecurityRequirement(name = "Authorization")
-	ResponseEntity<Long> saveDraft(@Parameter(hidden = true) Member member);
+	ResponseEntity<MemberPostSaveResponse> saveDraft(@Parameter(hidden = true) Member member);
+
+	@Operation(
+		summary = "회원 포스트 생성(릴리즈)",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "회원 포스트 생성(릴리즈) 성공",
+				content = @Content(schema = @Schema(implementation = MemberPostSaveResponse.class)))
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
+	@SecurityRequirement(name = "Authorization")
+	ResponseEntity<MemberPostSaveResponse> save(
+		@Parameter(hidden = true) Member member,
+		Long postId,
+		MemberPostSaveRequest memberPostSaveRequest);
 
 	@Operation(
 		summary = "회원 포스트 검색",

@@ -39,6 +39,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		return ResponseEntity.ok(memberPostSaveResponse);
 	}
 
+	@Override
 	@PostMapping("/{postId}")
 	public ResponseEntity<MemberPostSaveResponse> save(
 		@LoginMember Member member,
