@@ -3,10 +3,9 @@ package com.example.threedbe.bookmark.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.threedbe.member.dto.response.MemberResponse;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.MemberPost;
-import com.example.threedbe.post.dto.response.CompanyResponse;
+import com.example.threedbe.post.dto.response.AuthorResponse;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -27,11 +26,8 @@ public record BookmarkedPostResponse(
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
-	@Schema(description = "소속 회사")
-	CompanyResponse company,
-
-	@Schema(description = "작성자")
-	MemberResponse member,
+	@Schema(description = "저자")
+	AuthorResponse author,
 
 	@Schema(description = "기술들", example = "[\"REACT\", \"JAVASCRIPT\"]")
 	List<String> skills,
@@ -55,8 +51,7 @@ public record BookmarkedPostResponse(
 			companyPost.getThumbnailImageUrl(),
 			companyPost.getField().getName(),
 			companyPost.getViewCount(),
-			CompanyResponse.from(companyPost.getCompany()),
-			null,
+			AuthorResponse.from(companyPost.getCompany()),
 			null,
 			companyPost.getCreatedAt(),
 			isNew,
@@ -72,8 +67,7 @@ public record BookmarkedPostResponse(
 			memberPost.getThumbnailImageUrl(),
 			memberPost.getField().getName(),
 			memberPost.getViewCount(),
-			null,
-			MemberResponse.from(memberPost.getMember()),
+			AuthorResponse.from(memberPost.getMember()),
 			memberPost.getSkills()
 				.stream()
 				.map(skill -> skill.getSkill().getName())

@@ -2,7 +2,6 @@ package com.example.threedbe.post.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.example.threedbe.member.dto.response.MemberResponse;
 import com.example.threedbe.post.domain.MemberPost;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,8 +23,8 @@ public record MemberPostDetailResponse(
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
-	@Schema(description = "작성자")
-	MemberResponse member,
+	@Schema(description = "저자")
+	AuthorResponse author,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
 	LocalDateTime createdAt,
@@ -61,7 +60,7 @@ public record MemberPostDetailResponse(
 			memberPost.getContent(),
 			memberPost.getThumbnailImageUrl(),
 			memberPost.getViewCount(),
-			MemberResponse.from(memberPost.getMember()),
+			AuthorResponse.from(memberPost.getMember()),
 			memberPost.getCreatedAt(),
 			bookmarkCount,
 			isBookmarked,
