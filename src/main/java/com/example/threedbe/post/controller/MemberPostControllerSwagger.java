@@ -12,9 +12,11 @@ import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
+import com.example.threedbe.post.dto.request.MemberPostUpdateRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
+import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -100,5 +102,23 @@ public interface MemberPostControllerSwagger {
 	@SwaggerErrorCode500
 	ResponseEntity<ListResponse<MemberPostResponse>> findPopularMemberPosts(
 		MemberPostPopularRequest memberPostPopularRequest);
+
+	@Operation(
+		summary = "회원 포스트 수정",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "회원 포스트 수정 성공",
+				content = @Content(schema = @Schema(implementation = MemberPostSaveResponse.class)))
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
+	@SecurityRequirement(name = "Authorization")
+	ResponseEntity<MemberPostUpdateResponse> update(
+		@Parameter(hidden = true) Member member,
+		Long postId,
+		MemberPostUpdateRequest memberPostUpdateRequest);
 
 }

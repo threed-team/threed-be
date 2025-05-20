@@ -86,6 +86,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		return ResponseEntity.ok(popularMemberPosts);
 	}
 
+	@Override
 	@PatchMapping("/{postId}")
 	public ResponseEntity<MemberPostUpdateResponse> update(
 		@LoginMember Member member,
