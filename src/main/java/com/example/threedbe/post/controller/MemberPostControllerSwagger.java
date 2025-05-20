@@ -33,7 +33,6 @@ public interface MemberPostControllerSwagger {
 				description = "회원 포스트 임시 생성 성공")
 		})
 	@SwaggerErrorCode401
-	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
 	@SwaggerErrorCode500
 	@SecurityRequirement(name = "Authorization")
 	ResponseEntity<Long> saveDraft(@Parameter(hidden = true) Member member);
