@@ -26,9 +26,11 @@ import com.example.threedbe.post.domain.Skill;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
+import com.example.threedbe.post.dto.request.MemberPostUpdateRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
+import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
 import com.example.threedbe.post.repository.MemberPostRepository;
 import com.example.threedbe.post.repository.SkillRepository;
 
@@ -224,6 +226,36 @@ public class MemberPostService {
 			.toList();
 
 		return ListResponse.from(posts);
+	}
+
+	@Transactional
+	public MemberPostUpdateResponse update(
+		Member member,
+		Long postId,
+		MemberPostUpdateRequest memberPostUpdateRequest) {
+
+		MemberPost memberPost = memberPostRepository.findById(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+
+		if (!memberPost.getMember().equals(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
+		}
+
+		Field field = Field.of(memberPostUpdateRequest.field())
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + memberPostUpdateRequest.field()));
+		List<Skill> skills = memberPostUpdateRequest.skills()
+			.stream()
+			.map(skillName -> skillRepository.findByName(skillName)
+				.orElseGet(() -> skillRepository.save(new Skill(skillName))))
+			.toList();
+
+		if (memberPost.isDraft()) {
+			throw new ThreedBadRequestException("릴리즈 전 포스트는 수정할 수 없습니다: " + postId);
+		}
+
+		memberPost.update(memberPostUpdateRequest.title(), memberPostUpdateRequest.content(), field, skills);
+
+		return MemberPostUpdateResponse.from(memberPost);
 	}
 
 }

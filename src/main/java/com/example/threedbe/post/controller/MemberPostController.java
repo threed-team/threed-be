@@ -2,6 +2,7 @@ package com.example.threedbe.post.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,9 +17,11 @@ import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
+import com.example.threedbe.post.dto.request.MemberPostUpdateRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
+import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
 import com.example.threedbe.post.service.MemberPostService;
 
 import jakarta.validation.Valid;
@@ -44,8 +47,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 	public ResponseEntity<MemberPostSaveResponse> save(
 		@LoginMember Member member,
 		@PathVariable("postId") Long postId,
-		@RequestBody @Valid MemberPostSaveRequest memberPostSaveRequest
-	) {
+		@RequestBody @Valid MemberPostSaveRequest memberPostSaveRequest) {
 
 		MemberPostSaveResponse memberPostSaveResponse = memberPostService.save(member, postId, memberPostSaveRequest);
 
@@ -82,6 +84,18 @@ public class MemberPostController implements MemberPostControllerSwagger {
 			memberPostService.findPopularMemberPosts(memberPostPopularRequest);
 
 		return ResponseEntity.ok(popularMemberPosts);
+	}
+
+	@PatchMapping("/{postId}")
+	public ResponseEntity<MemberPostUpdateResponse> update(
+		@LoginMember Member member,
+		@PathVariable("postId") Long postId,
+		@RequestBody @Valid MemberPostUpdateRequest memberPostUpdateRequest) {
+
+		MemberPostUpdateResponse memberPostUpdateResponse =
+			memberPostService.update(member, postId, memberPostUpdateRequest);
+
+		return ResponseEntity.ok(memberPostUpdateResponse);
 	}
 
 }

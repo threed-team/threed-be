@@ -63,7 +63,7 @@ public abstract class Post extends BaseEntity {
 		return this.bookmarks.size();
 	}
 
-	public void update(String title, String content, Field field) {
+	protected void update(String title, String content, Field field) {
 		this.title = title;
 		this.content = content;
 		this.field = field;
