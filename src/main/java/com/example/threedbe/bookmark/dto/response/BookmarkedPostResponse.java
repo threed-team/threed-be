@@ -35,6 +35,9 @@ public record BookmarkedPostResponse(
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
 	LocalDateTime createdAt,
 
+	@Schema(description = "회사 포스트 여부", example = "true")
+	boolean isCompany,
+
 	@Schema(description = "신규 포스트 여부", example = "true")
 	boolean isNew,
 
@@ -54,6 +57,7 @@ public record BookmarkedPostResponse(
 			AuthorResponse.from(companyPost.getCompany()),
 			null,
 			companyPost.getCreatedAt(),
+			true,
 			isNew,
 			isHot
 		);
@@ -73,6 +77,7 @@ public record BookmarkedPostResponse(
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
 			memberPost.getReleasedAt(),
+			false,
 			isNew,
 			isHot
 		);
