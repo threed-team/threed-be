@@ -38,6 +38,13 @@ public class MemberPostService {
 
 	private final MemberPostRepository memberPostRepository;
 
+	@Transactional
+	public Long saveDraft(Member member) {
+		MemberPost savedMemberPost = memberPostRepository.save(new MemberPost(member));
+
+		return savedMemberPost.getId();
+	}
+
 	// TODO: QueryDSL로 변경
 	public PageResponse<MemberPostResponse> search(MemberPostSearchRequest memberPostSearchRequest) {
 		List<Field> fields = Optional.ofNullable(memberPostSearchRequest.fields())

@@ -36,4 +36,8 @@ public class MemberPost extends Post {
 
 	private LocalDateTime releasedAt;
 
+	public MemberPost(Member member) {
+		this.member = member;
+	}
+
 }
