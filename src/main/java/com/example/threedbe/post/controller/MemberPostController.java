@@ -3,10 +3,12 @@ package com.example.threedbe.post.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.threedbe.common.annotation.CurrentMember;
+import com.example.threedbe.common.annotation.LoginMember;
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
@@ -25,6 +27,14 @@ import lombok.RequiredArgsConstructor;
 public class MemberPostController implements MemberPostControllerSwagger {
 
 	private final MemberPostService memberPostService;
+
+	@Override
+	@PostMapping
+	public ResponseEntity<Long> saveDraft(@LoginMember Member member) {
+		Long postId = memberPostService.saveDraft(member);
+
+		return ResponseEntity.ok(postId);
+	}
 
 	@Override
 	@GetMapping("/search")

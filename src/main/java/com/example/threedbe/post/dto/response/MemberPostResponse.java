@@ -53,7 +53,7 @@ public record MemberPostResponse(
 				.stream()
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
-			memberPost.getCreatedAt(),
+			memberPost.getReleasedAt(),
 			isNew,
 			isHot
 		);
