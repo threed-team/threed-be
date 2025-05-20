@@ -3,7 +3,6 @@ package com.example.threedbe.post.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.threedbe.member.dto.response.MemberResponse;
 import com.example.threedbe.post.domain.MemberPost;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,8 +24,8 @@ public record MemberPostResponse(
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
-	@Schema(description = "작성자")
-	MemberResponse member,
+	@Schema(description = "저자")
+	AuthorResponse author,
 
 	@Schema(description = "기술들", example = "[\"REACT\", \"JAVASCRIPT\"]")
 	List<String> skills,
@@ -49,7 +48,7 @@ public record MemberPostResponse(
 			memberPost.getThumbnailImageUrl(),
 			memberPost.getField().getName(),
 			memberPost.getViewCount(),
-			MemberResponse.from(memberPost.getMember()),
+			AuthorResponse.from(memberPost.getMember()),
 			memberPost.getSkills()
 				.stream()
 				.map(skill -> skill.getSkill().getName())

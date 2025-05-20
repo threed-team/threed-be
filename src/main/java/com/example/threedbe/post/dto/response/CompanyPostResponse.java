@@ -23,8 +23,8 @@ public record CompanyPostResponse(
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
-	@Schema(description = "소속 회사")
-	CompanyResponse company,
+	@Schema(description = "저자")
+	AuthorResponse author,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
 	LocalDateTime createdAt,
@@ -44,7 +44,7 @@ public record CompanyPostResponse(
 			companyPost.getThumbnailImageUrl(),
 			companyPost.getField().getName(),
 			companyPost.getViewCount(),
-			CompanyResponse.from(companyPost.getCompany()),
+			AuthorResponse.from(companyPost.getCompany()),
 			companyPost.getCreatedAt(),
 			isNew,
 			isHot
