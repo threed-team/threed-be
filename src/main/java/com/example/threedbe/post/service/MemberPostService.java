@@ -28,6 +28,7 @@ import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
+import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.repository.MemberPostRepository;
 import com.example.threedbe.post.repository.SkillRepository;
 
@@ -42,14 +43,14 @@ public class MemberPostService {
 	private final SkillRepository skillRepository;
 
 	@Transactional
-	public Long saveDraft(Member member) {
-		MemberPost savedMemberPost = memberPostRepository.save(new MemberPost(member));
+	public MemberPostSaveResponse saveDraft(Member member) {
+		MemberPost memberPost = memberPostRepository.save(new MemberPost(member));
 
-		return savedMemberPost.getId();
+		return MemberPostSaveResponse.from(memberPost);
 	}
 
 	@Transactional
-	public Long save(Member member, Long postId, MemberPostSaveRequest memberPostSaveRequest) {
+	public MemberPostSaveResponse save(Member member, Long postId, MemberPostSaveRequest memberPostSaveRequest) {
 		MemberPost memberPost = memberPostRepository.findById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 
@@ -71,7 +72,7 @@ public class MemberPostService {
 
 		memberPost.release(memberPostSaveRequest.title(), memberPostSaveRequest.content(), field, skills);
 
-		return memberPost.getId();
+		return MemberPostSaveResponse.from(memberPost);
 	}
 
 	// TODO: QueryDSL로 변경

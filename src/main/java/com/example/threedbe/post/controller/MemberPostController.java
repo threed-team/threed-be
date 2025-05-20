@@ -18,6 +18,7 @@ import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
+import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.service.MemberPostService;
 
 import jakarta.validation.Valid;
@@ -32,22 +33,22 @@ public class MemberPostController implements MemberPostControllerSwagger {
 
 	@Override
 	@PostMapping
-	public ResponseEntity<Long> saveDraft(@LoginMember Member member) {
-		Long postId = memberPostService.saveDraft(member);
+	public ResponseEntity<MemberPostSaveResponse> saveDraft(@LoginMember Member member) {
+		MemberPostSaveResponse memberPostSaveResponse = memberPostService.saveDraft(member);
 
-		return ResponseEntity.ok(postId);
+		return ResponseEntity.ok(memberPostSaveResponse);
 	}
 
 	@PostMapping("/{postId}")
-	public ResponseEntity<Long> save(
+	public ResponseEntity<MemberPostSaveResponse> save(
 		@LoginMember Member member,
 		@PathVariable("postId") Long postId,
 		@RequestBody @Valid MemberPostSaveRequest memberPostSaveRequest
 	) {
 
-		Long savedPostId = memberPostService.save(member, postId, memberPostSaveRequest);
+		MemberPostSaveResponse memberPostSaveResponse = memberPostService.save(member, postId, memberPostSaveRequest);
 
-		return ResponseEntity.ok(savedPostId);
+		return ResponseEntity.ok(memberPostSaveResponse);
 	}
 
 	@Override
