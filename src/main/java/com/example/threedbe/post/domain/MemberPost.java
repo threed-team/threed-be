@@ -53,14 +53,14 @@ public class MemberPost extends Post {
 		return !isDraft();
 	}
 
-	public void release(String title, String content, Field field, List<Skill> skills) {
-		super.update(title, content, field);
+	public void release(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
+		super.update(title, content, thumbnailUrl, field);
 		skills.forEach(this::addSkill);
 		this.releasedAt = LocalDateTime.now();
 	}
 
-	public void update(String title, String content, Field field, List<Skill> skills) {
-		super.update(title, content, field);
+	public void update(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
+		super.update(title, content, thumbnailUrl, field);
 		this.skills.removeIf(memberPostSkill -> skills.stream()
 			.noneMatch(newSkill -> newSkill.getName().equals(memberPostSkill.getSkill().getName())));
 		skills.forEach(this::addSkillIfNotExists);

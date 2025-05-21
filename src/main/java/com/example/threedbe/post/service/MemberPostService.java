@@ -2,6 +2,7 @@ package com.example.threedbe.post.service;
 
 import static com.example.threedbe.post.domain.Skill.*;
 
+import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,6 +19,7 @@ import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
+import com.example.threedbe.common.service.S3Service;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
@@ -43,6 +45,8 @@ public class MemberPostService {
 
 	private final MemberPostRepository memberPostRepository;
 	private final SkillRepository skillRepository;
+	private final ThumbnailService thumbnailService;
+	private final S3Service s3Service;
 
 	@Transactional
 	public MemberPostSaveResponse saveDraft(Member member) {
@@ -72,7 +76,10 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("이미 릴리즈된 포스트입니다: " + postId);
 		}
 
-		memberPost.release(memberPostSaveRequest.title(), memberPostSaveRequest.content(), field, skills);
+		String title = memberPostSaveRequest.title();
+		BufferedImage thumbnailImage = thumbnailService.createThumbnailImage(title);
+		String thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, title);
+		memberPost.release(title, memberPostSaveRequest.content(), field, thumbnailUrl, skills);
 
 		return MemberPostSaveResponse.from(memberPost);
 	}
@@ -253,7 +260,18 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("릴리즈 전 포스트는 수정할 수 없습니다: " + postId);
 		}
 
-		memberPost.update(memberPostUpdateRequest.title(), memberPostUpdateRequest.content(), field, skills);
+		String newTitle = memberPostUpdateRequest.title();
+		String thumbnailUrl = memberPost.getThumbnailImageUrl();
+		if (!newTitle.equals(memberPost.getTitle())) {
+			if (thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
+				s3Service.deleteThumbnail(thumbnailUrl);
+			}
+
+			BufferedImage thumbnailImage = thumbnailService.createThumbnailImage(newTitle);
+			thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, newTitle);
+		}
+
+		memberPost.update(newTitle, memberPostUpdateRequest.content(), field, thumbnailUrl, skills);
 
 		return MemberPostUpdateResponse.from(memberPost);
 	}
