@@ -51,6 +51,22 @@ public class Member {
 
 	private LocalDateTime deletedAt;
 
+	// 수정된 생성자 - 외부에서 AuthProvider 주입
+	public Member(AuthProvider authProvider, String email, String nickname, String profileImageUrl) {
+		this.authProvider = authProvider;
+		this.email = email;
+		this.nickname = nickname;
+		this.profileImageUrl = profileImageUrl;
+	}
+
+	public void updateRefreshToken(RefreshToken refreshToken) {
+		this.refreshToken = refreshToken;
+	}
+
+	public void deleteRefreshToken() {
+		this.refreshToken = null;
+	}
+
 	public boolean isDeleted() {
 		return deletedAt != null;
 	}
@@ -80,5 +96,4 @@ public class Member {
 	public int hashCode() {
 		return Objects.hashCode(id);
 	}
-
 }
