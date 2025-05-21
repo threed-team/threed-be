@@ -33,3 +33,12 @@ auth:
   refresh-key: secretsecretsecretsecretsecretsecretsecretsecret
   access-expiration: 7200000 # 2 hours
   refresh-expiration: 2419200000 # 28 days
+
+aws:
+  s3:
+    region: ap-northeast-2
+    bucket-name: bucket-name
+    access-key: access-key
+    secret-key: secret-key
+    thumbnail-directory: thumbnail
+    cdn-url: cdn-url

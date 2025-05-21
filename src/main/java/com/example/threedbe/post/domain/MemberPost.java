@@ -45,18 +45,39 @@ public class MemberPost extends Post {
 		this.member = member;
 	}
 
-	public boolean isNotDraft() {
-		return releasedAt != null;
+	public boolean isDraft() {
+		return releasedAt == null;
 	}
 
-	public void release(String title, String content, Field field, List<Skill> skills) {
-		super.update(title, content, field);
+	public boolean isNotDraft() {
+		return !isDraft();
+	}
+
+	public void release(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
+		super.update(title, content, thumbnailUrl, field);
 		skills.forEach(this::addSkill);
 		this.releasedAt = LocalDateTime.now();
 	}
 
+	public void update(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
+		super.update(title, content, thumbnailUrl, field);
+		this.skills.removeIf(memberPostSkill -> skills.stream()
+			.noneMatch(newSkill -> newSkill.getName().equals(memberPostSkill.getSkill().getName())));
+		skills.forEach(this::addSkillIfNotExists);
+	}
+
 	private void addSkill(Skill skill) {
 		this.skills.add(new MemberPostSkill(this, skill));
+	}
+
+	private void addSkillIfNotExists(Skill skill) {
+		boolean exists = this.skills.stream()
+			.anyMatch(memberPostSkill ->
+				memberPostSkill.getSkill().getName().equals(skill.getName()));
+
+		if (!exists) {
+			addSkill(skill);
+		}
 	}
 
 }
