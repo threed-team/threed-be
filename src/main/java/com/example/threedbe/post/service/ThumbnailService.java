@@ -15,7 +15,7 @@ public class ThumbnailService {
 	private static final int THUMBNAIL_HEIGHT = 630;
 	private static final Color BACKGROUND_COLOR = new Color(97, 76, 246);
 	private static final Color TEXT_COLOR = Color.WHITE;
-	private static final Font TITLE_FONT = new Font("SansSerif", Font.BOLD, 64);
+	private static final Font TITLE_FONT = new Font(Font.MONOSPACED, Font.BOLD, 64);
 
 	public BufferedImage createThumbnailImage(String title) {
 		BufferedImage image = new BufferedImage(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, BufferedImage.TYPE_INT_RGB);
