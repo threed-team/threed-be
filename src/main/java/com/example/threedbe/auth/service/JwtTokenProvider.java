@@ -68,4 +68,24 @@ public class JwtTokenProvider {
 		}
 	}
 
+	// 새로 추가된 부분: refresh token 파싱
+	public long parseRefreshToken(RefreshToken refreshToken) {
+		return parseToken(refreshToken.getValue(), authProperties.getRefreshKey());
+	}
+
+	//  내부에서 공통으로 쓰는 토큰 파싱 메서드
+	private long parseToken(String token, String secretKey) {
+		try {
+			Claims claims = Jwts.parser()
+				.setSigningKey(secretKey)
+				.parseClaimsJws(token)
+				.getBody();
+
+			return Long.parseLong(claims.getSubject());
+		} catch (ExpiredJwtException exception) {
+			return Long.parseLong(exception.getClaims().getSubject());
+		} catch (JwtException exception) {
+			throw new ThreedBadRequestException(exception.getMessage());
+		}
+	}
 }
