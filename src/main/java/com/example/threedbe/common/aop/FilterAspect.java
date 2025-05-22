@@ -24,6 +24,7 @@ public class FilterAspect {
 	public void enableFilter() {
 		Session session = entityManager.unwrap(Session.class);
 		session.enableFilter("releasedPostFilter");
+		session.enableFilter("deletedPostFilter");
 	}
 
 }

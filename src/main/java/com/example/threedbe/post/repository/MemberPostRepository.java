@@ -89,4 +89,6 @@ public interface MemberPostRepository extends JpaRepository<MemberPost, Long> {
 		"ORDER BY (mp.viewCount + SIZE(mp.bookmarks) * 2) DESC LIMIT 10")
 	List<MemberPost> findMemberPostsOrderByPopularity(@Param("createdAt") LocalDateTime createdAt);
 
+	Optional<MemberPost> findByIdAndDeletedAtIsNull(Long id);
+
 }
