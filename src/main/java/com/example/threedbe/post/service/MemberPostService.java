@@ -192,7 +192,7 @@ public class MemberPostService {
 	// TODO: 쿼리 수 줄이기
 	@Transactional
 	public MemberPostDetailResponse findMemberPostDetail(Member member, Long postId) {
-		MemberPost memberPost = memberPostRepository.findById(postId)
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 		memberPost.increaseViewCount();
 
@@ -241,7 +241,7 @@ public class MemberPostService {
 		Long postId,
 		MemberPostUpdateRequest memberPostUpdateRequest) {
 
-		MemberPost memberPost = memberPostRepository.findById(postId)
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 
 		if (!memberPost.getMember().equals(member)) {
