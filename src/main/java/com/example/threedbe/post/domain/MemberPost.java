@@ -26,8 +26,6 @@ import lombok.NoArgsConstructor;
 @Getter
 @Filter(name = "deletedPostFilter", condition = "deleted_at IS NULL")
 @FilterDef(name = "deletedPostFilter")
-@Filter(name = "releasedPostFilter", condition = "released_at IS NOT NULL")
-@FilterDef(name = "releasedPostFilter")
 @SQLDelete(sql = "UPDATE member_posts SET deleted_at = NOW() WHERE id = ?")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("MEMBER")
@@ -43,8 +41,6 @@ public class MemberPost extends Post {
 	@OneToMany(mappedBy = "memberPost", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MemberPostSkill> skills;
 
-	private LocalDateTime releasedAt;
-
 	private LocalDateTime deletedAt;
 
 	public MemberPost(Member member) {
@@ -52,7 +48,7 @@ public class MemberPost extends Post {
 	}
 
 	public boolean isDraft() {
-		return releasedAt == null;
+		return super.publishedAt == null;
 	}
 
 	public boolean isNotDraft() {
@@ -62,7 +58,7 @@ public class MemberPost extends Post {
 	public void release(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
 		super.update(title, content, thumbnailUrl, field);
 		skills.forEach(this::addSkill);
-		this.releasedAt = LocalDateTime.now();
+		super.publishedAt = LocalDateTime.now();
 	}
 
 	public void update(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {

@@ -54,7 +54,7 @@ public class MemberService {
 				member.getId(),
 				pageRequest)
 			.map(post -> {
-				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
 				boolean isHot = popularPosts.contains(post);
 

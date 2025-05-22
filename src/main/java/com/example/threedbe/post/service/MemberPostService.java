@@ -117,7 +117,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsAll(keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -126,7 +126,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -145,7 +145,7 @@ public class MemberPostService {
 							keyword,
 							pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -158,7 +158,7 @@ public class MemberPostService {
 							keyword,
 							pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -169,7 +169,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithoutFields(skillNames, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -178,7 +178,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFields(fields, skillNames, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -204,10 +204,10 @@ public class MemberPostService {
 
 		boolean isMyPost = memberPost.getMember().equals(member);
 
-		LocalDateTime createdAt = memberPost.getCreatedAt();
-		Long nextId = memberPostRepository.findNextId(createdAt)
+		LocalDateTime publishedAt = memberPost.getPublishedAt();
+		Long nextId = memberPostRepository.findNextId(publishedAt)
 			.orElse(null);
-		Long prevId = memberPostRepository.findPrevId(createdAt)
+		Long prevId = memberPostRepository.findPrevId(publishedAt)
 			.orElse(null);
 
 		return MemberPostDetailResponse.from(memberPost, bookmarkCount, isBookmarked, isMyPost, nextId, prevId);
@@ -226,7 +226,7 @@ public class MemberPostService {
 
 		List<MemberPostResponse> posts = memberPostRepository.findMemberPostsOrderByPopularity(startDate).stream()
 			.map(post -> {
-				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
 				return MemberPostResponse.from(post, isNew, true);
 			})

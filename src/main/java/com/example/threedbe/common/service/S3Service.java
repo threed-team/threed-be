@@ -89,7 +89,7 @@ public class S3Service {
 		return url.substring(cdnUrl.length() + 1);
 	}
 
-	public String createSafeFileName(String title) {
+	private String createSafeFileName(String title) {
 		if (title == null || title.trim().isEmpty()) {
 			return "thumbnail";
 		}

@@ -13,7 +13,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 	@Query("SELECT DISTINCT p FROM Post p JOIN p.bookmarks b " +
 		"WHERE b.member.id = :memberId " +
 		"AND (TYPE(p) <> MemberPost OR (TYPE(p) = MemberPost AND TREAT(p AS MemberPost).deletedAt IS NULL)) " +
-		"ORDER BY p.createdAt DESC")
-	Page<Post> findByBookmarksMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
+		"ORDER BY p.publishedAt DESC")
+	Page<Post> findByBookmarksMemberIdOrderByPublishedAtDesc(Long memberId, Pageable pageable);
 
 }
