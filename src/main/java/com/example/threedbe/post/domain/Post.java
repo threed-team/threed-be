@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
@@ -28,6 +29,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "posts")
 @Entity
 @Getter
+@SQLDelete(sql = "UPDATE posts SET updated_at = NOW() WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorColumn(name = "post_type")

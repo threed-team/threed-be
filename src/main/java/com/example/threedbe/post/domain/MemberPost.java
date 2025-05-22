@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.member.domain.Member;
 
@@ -23,8 +24,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "member_posts")
 @Entity
 @Getter
+@Filter(name = "deletedPostFilter", condition = "deleted_at IS NULL")
+@FilterDef(name = "deletedPostFilter")
 @Filter(name = "releasedPostFilter", condition = "released_at IS NOT NULL")
 @FilterDef(name = "releasedPostFilter")
+@SQLDelete(sql = "UPDATE member_posts SET deleted_at = NOW() WHERE id = ?")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("MEMBER")
 public class MemberPost extends Post {
@@ -40,6 +44,8 @@ public class MemberPost extends Post {
 	private List<MemberPostSkill> skills;
 
 	private LocalDateTime releasedAt;
+
+	private LocalDateTime deletedAt;
 
 	public MemberPost(Member member) {
 		this.member = member;
