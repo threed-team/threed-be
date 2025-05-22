@@ -1,6 +1,7 @@
 package com.example.threedbe.post.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -97,6 +98,13 @@ public class MemberPostController implements MemberPostControllerSwagger {
 			memberPostService.update(member, postId, memberPostUpdateRequest);
 
 		return ResponseEntity.ok(memberPostUpdateResponse);
+	}
+
+	@DeleteMapping("/{postId}")
+	public ResponseEntity<Void> delete(@LoginMember Member member, @PathVariable("postId") Long postId) {
+		memberPostService.delete(member, postId);
+
+		return ResponseEntity.noContent().build();
 	}
 
 }

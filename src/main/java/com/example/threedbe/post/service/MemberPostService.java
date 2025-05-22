@@ -276,4 +276,20 @@ public class MemberPostService {
 		return MemberPostUpdateResponse.from(memberPost);
 	}
 
+	@Transactional
+	public void delete(Member member, Long postId) {
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+
+		if (!memberPost.getMember().equals(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
+		}
+
+		if (memberPost.isDraft()) {
+			throw new ThreedBadRequestException("릴리즈 전 포스트는 삭제할 수 없습니다: " + postId);
+		}
+
+		memberPostRepository.delete(memberPost);
+	}
+
 }
