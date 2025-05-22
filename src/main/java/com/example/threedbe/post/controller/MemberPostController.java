@@ -100,6 +100,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		return ResponseEntity.ok(memberPostUpdateResponse);
 	}
 
+	@Override
 	@DeleteMapping("/{postId}")
 	public ResponseEntity<Void> delete(@LoginMember Member member, @PathVariable("postId") Long postId) {
 		memberPostService.delete(member, postId);

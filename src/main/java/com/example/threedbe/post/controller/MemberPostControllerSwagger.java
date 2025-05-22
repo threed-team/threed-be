@@ -121,4 +121,18 @@ public interface MemberPostControllerSwagger {
 		Long postId,
 		MemberPostUpdateRequest memberPostUpdateRequest);
 
+	@Operation(
+		summary = "회원 포스트 삭제",
+		responses = {
+			@ApiResponse(
+				responseCode = "204",
+				description = "회원 포스트 삭제 성공")
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
+	@SecurityRequirement(name = "Authorization")
+	ResponseEntity<Void> delete(@Parameter(hidden = true) Member member, Long postId);
+
 }
