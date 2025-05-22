@@ -1,9 +1,12 @@
 package com.example.threedbe.post.domain;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
@@ -29,6 +32,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "posts")
 @Entity
 @Getter
+@Filter(name = "publishedPostFilter", condition = "published_at IS NOT NULL")
+@FilterDef(name = "publishedPostFilter")
 @SQLDelete(sql = "UPDATE posts SET updated_at = NOW() WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -56,6 +61,17 @@ public abstract class Post extends BaseEntity {
 
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Bookmark> bookmarks;
+
+	protected LocalDateTime publishedAt;
+
+	protected Post(String title, String content, String thumbnailImageUrl, Field field, LocalDateTime publishedAt) {
+		this.title = title;
+		this.content = content;
+		this.thumbnailImageUrl = thumbnailImageUrl;
+		this.field = field;
+		this.viewCount = 0;
+		this.publishedAt = publishedAt;
+	}
 
 	public void increaseViewCount() {
 		this.viewCount++;

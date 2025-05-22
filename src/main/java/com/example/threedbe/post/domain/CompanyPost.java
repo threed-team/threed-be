@@ -1,5 +1,7 @@
 package com.example.threedbe.post.domain;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -22,5 +24,13 @@ public class CompanyPost extends Post {
 	private Company company;
 
 	private String sourceUrl;
+
+	public CompanyPost(String title, String content, String thumbnailImageUrl, Field field, LocalDateTime publishedAt,
+		Company company,
+		String sourceUrl) {
+		super(title, content, thumbnailImageUrl, field, publishedAt);
+		this.company = company;
+		this.sourceUrl = sourceUrl;
+	}
 
 }

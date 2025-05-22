@@ -76,7 +76,7 @@ public record BookmarkedPostResponse(
 				.stream()
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
-			memberPost.getReleasedAt(),
+			memberPost.getPublishedAt(),
 			false,
 			isNew,
 			isHot

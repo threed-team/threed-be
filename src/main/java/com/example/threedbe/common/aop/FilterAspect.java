@@ -23,7 +23,7 @@ public class FilterAspect {
 	@Before("serviceClass()")
 	public void enableFilter() {
 		Session session = entityManager.unwrap(Session.class);
-		session.enableFilter("releasedPostFilter");
+		session.enableFilter("publishedPostFilter");
 		session.enableFilter("deletedPostFilter");
 	}
 
