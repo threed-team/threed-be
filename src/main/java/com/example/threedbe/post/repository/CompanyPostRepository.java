@@ -16,8 +16,6 @@ import com.example.threedbe.post.domain.Field;
 
 public interface CompanyPostRepository extends JpaRepository<CompanyPost, Long> {
 
-	boolean existsBySourceUrl(String sourceUrl);
-
 	@Query("SELECT cp FROM CompanyPost cp WHERE " +
 		"cp.field IN :fields AND " +
 		"cp.company IN :companies AND " +
