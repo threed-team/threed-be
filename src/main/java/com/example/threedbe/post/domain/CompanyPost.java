@@ -1,7 +1,5 @@
 package com.example.threedbe.post.domain;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

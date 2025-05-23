@@ -11,6 +11,7 @@ import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
+import com.example.threedbe.common.exception.ThreedBadRequestException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -73,10 +74,25 @@ public abstract class Post extends BaseEntity {
 	}
 
 	protected void update(String title, String content, String thumbnailImageUrl, Field field) {
+		validateTitle(title);
+		validateContent(content);
+
 		this.title = title;
 		this.content = content;
 		this.thumbnailImageUrl = thumbnailImageUrl;
 		this.field = field;
+	}
+
+	private void validateTitle(String title) {
+		if (title.length() > 100) {
+			throw new ThreedBadRequestException("게시글 제목은 100자 이내로 작성해야 합니다.");
+		}
+	}
+
+	private void validateContent(String content) {
+		if (content.length() > 10000) {
+			throw new ThreedBadRequestException("게시글 내용은 10,000자 이내로 작성해야 합니다.");
+		}
 	}
 
 	@Override
