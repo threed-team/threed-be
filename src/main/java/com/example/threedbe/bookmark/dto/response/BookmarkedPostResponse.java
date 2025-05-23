@@ -56,7 +56,7 @@ public record BookmarkedPostResponse(
 			companyPost.getViewCount(),
 			AuthorResponse.from(companyPost.getCompany()),
 			null,
-			companyPost.getCreatedAt(),
+			companyPost.getPublishedAt(),
 			true,
 			isNew,
 			isHot
