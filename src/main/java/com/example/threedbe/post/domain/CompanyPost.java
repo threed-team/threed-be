@@ -25,12 +25,4 @@ public class CompanyPost extends Post {
 
 	private String sourceUrl;
 
-	public CompanyPost(String title, String content, String thumbnailImageUrl, Field field, LocalDateTime publishedAt,
-		Company company,
-		String sourceUrl) {
-		super(title, content, thumbnailImageUrl, field, publishedAt);
-		this.company = company;
-		this.sourceUrl = sourceUrl;
-	}
-
 }

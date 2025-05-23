@@ -64,15 +64,6 @@ public abstract class Post extends BaseEntity {
 
 	protected LocalDateTime publishedAt;
 
-	protected Post(String title, String content, String thumbnailImageUrl, Field field, LocalDateTime publishedAt) {
-		this.title = title;
-		this.content = content;
-		this.thumbnailImageUrl = thumbnailImageUrl;
-		this.field = field;
-		this.viewCount = 0;
-		this.publishedAt = publishedAt;
-	}
-
 	public void increaseViewCount() {
 		this.viewCount++;
 	}
