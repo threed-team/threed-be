@@ -1,28 +1,32 @@
 package com.example.threedbe.crawler.service;
 
-import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
-
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.input.SAXBuilder;
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.threedbe.common.dto.LlmResponseDto;
-import com.example.threedbe.common.service.LlmService;
-import com.example.threedbe.common.service.S3Service;
 import com.example.threedbe.crawler.dto.BlogSource;
 import com.example.threedbe.crawler.dto.CrawledContentDto;
-import com.example.threedbe.post.domain.Company;
-import com.example.threedbe.post.domain.CompanyPost;
-import com.example.threedbe.post.domain.Field;
-import com.example.threedbe.post.repository.CompanyPostRepository;
+import com.example.threedbe.post.service.CompanyPostService;
 import com.rometools.rome.feed.synd.SyndContent;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
@@ -37,9 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class BlogCrawlerService {
 
-	private final CompanyPostRepository companyPostRepository;
-	private final LlmService llmService;
-	private final S3Service s3Service;
+	private final CompanyPostService companyPostService;
 
 	@Transactional
 	public int crawlAllSourcesAndCreatePosts() {
@@ -65,11 +67,12 @@ public class BlogCrawlerService {
 
 		switch (source) {
 			case NAVER -> contents = crawlNaver();
+			case KAKAO -> contents = crawlKakao();
 			default -> log.warn("지원하지 않는 블로그 소스: {}", source.getDisplayName());
 		}
 
 		for (CrawledContentDto dto : contents) {
-			if (createCompanyPost(dto)) {
+			if (companyPostService.createCompanyPost(dto)) {
 				createdCount++;
 			}
 		}
@@ -90,7 +93,7 @@ public class BlogCrawlerService {
 				String title = entry.getTitle();
 				String postUrl = entry.getLink();
 
-				if (companyPostRepository.existsBySourceUrl(postUrl)) {
+				if (companyPostService.existsBySourceUrl(postUrl)) {
 					continue;
 				}
 
@@ -131,70 +134,88 @@ public class BlogCrawlerService {
 		return results;
 	}
 
-	public boolean createCompanyPost(CrawledContentDto dto) {
-		LlmResponseDto llmResponse = summarizeContent(dto);
+	private List<CrawledContentDto> crawlKakao() {
+		log.info("카카오 블로그 크롤링 시작 (RSS 피드 사용)");
+		List<CrawledContentDto> results = new ArrayList<>();
 
-		BufferedImage bufferedImage = processThumbnailImage(dto.thumbnailImageUrl());
-		String title = dto.title();
-		String thumbnailUrl = s3Service.uploadThumbnailImage(bufferedImage, title);
-
-		Field field = determineField(llmResponse.field());
-
-		Company company = determineCompany(dto.sourceName());
-
-		CompanyPost companyPost = new CompanyPost(
-			title,
-			llmResponse.summary(),
-			thumbnailUrl,
-			field,
-			dto.publishedAt(),
-			company,
-			dto.url()
-		);
-
-		companyPostRepository.save(companyPost);
-		log.info("새 회사 포스트 생성: {}, 회사: {}, 분야: {}", title, company, field);
-
-		return true;
-	}
-
-	private LlmResponseDto summarizeContent(CrawledContentDto dto) {
-
-		return llmService.generate(dto.content());
-	}
-
-	private BufferedImage processThumbnailImage(String thumbnailUrl) {
 		try {
-			URL imageUrl = new URL(thumbnailUrl);
+			URL feedUrl = new URL(BlogSource.KAKAO.getBaseUrl());
+			SAXBuilder saxBuilder = new SAXBuilder();
+			Document document = saxBuilder.build(feedUrl);
+			Element rootElement = document.getRootElement();
+			Element channel = rootElement.getChild("channel");
+			List<Element> items = channel.getChildren("item");
 
-			return ImageIO.read(imageUrl);
+			for (Element item : items) {
+				String title = item.getChildText("title");
+				if (title != null && title.startsWith("<![CDATA[") && title.endsWith("]]>")) {
+					title = title.substring(9, title.length() - 3);
+				}
+
+				String postUrl = item.getChildText("link");
+
+				if (companyPostService.existsBySourceUrl(postUrl)) {
+					continue;
+				}
+
+				String pubDateStr = item.getChildText("pubDate");
+				SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+				LocalDateTime publishedAt = dateFormat.parse(pubDateStr)
+					.toInstant()
+					.atZone(ZoneId.systemDefault())
+					.toLocalDateTime();
+
+				String thumbnailUrl = item.getChildText("thumbnail");
+
+				String contentText = "";
+				ChromeOptions options = new ChromeOptions();
+				options.addArguments("--headless");
+				options.addArguments("--disable-gpu");
+				options.addArguments("--window-size=1920,1080");
+				options.addArguments("--disable-extensions");
+				options.addArguments("--no-sandbox");
+				options.addArguments("--disable-dev-shm-usage");
+
+				WebDriver driver = new ChromeDriver(options);
+				try {
+					driver.get(postUrl);
+
+					WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+					wait.until(JavascriptExecutor.class::cast)
+						.executeScript("return document.readyState").equals("complete");
+
+					String selector = "div.daum-wm-content.preview";
+					List<WebElement> elements = driver.findElements(
+						By.cssSelector(selector));
+
+					if (!elements.isEmpty()) {
+						String text = elements.get(0).getText().trim();
+						if (!text.isEmpty()) {
+							contentText = text.replaceAll("\\r?\\n", " ");
+						}
+					}
+
+				} finally {
+					driver.quit();
+					log.info("WebDriver 종료 완료");
+				}
+
+				CrawledContentDto dto = new CrawledContentDto(
+					title,
+					contentText,
+					postUrl,
+					BlogSource.KAKAO.getDisplayName(),
+					thumbnailUrl,
+					publishedAt
+				);
+
+				results.add(dto);
+			}
 		} catch (Exception e) {
-			log.error("썸네일 이미지 다운로드 및 업로드 중 오류 발생: {}", e.getMessage());
-			return null;
+			log.error("카카오 RSS 피드 파싱 중 오류 발생: {}", e.getMessage(), e);
 		}
-	}
 
-	private Field determineField(String fieldStr) {
-		return switch (fieldStr.toUpperCase()) {
-			case "AI" -> Field.AI;
-			case "BACKEND" -> Field.BACKEND;
-			case "FRONTEND" -> Field.FRONTEND;
-			case "DEVOPS" -> Field.DEVOPS;
-			case "MOBILE" -> Field.MOBILE;
-			case "DB" -> Field.DB;
-			case "COLLAB TOOL" -> Field.COLLAB_TOOL;
-			default -> Field.ETC;
-		};
-	}
-
-	private Company determineCompany(String sourceName) {
-		return switch (sourceName) {
-			case "네이버" -> Company.NAVER;
-			case "카카오" -> Company.KAKAO;
-			case "라인" -> Company.LINE;
-			case "토스" -> Company.TOSS;
-			default -> Company.ETC;
-		};
+		return results;
 	}
 
 	private String extractTextFromSyndContent(List<SyndContent> contents) {
@@ -211,4 +232,5 @@ public class BlogCrawlerService {
 
 		return contentBuilder.toString();
 	}
+
 }

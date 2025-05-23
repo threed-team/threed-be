@@ -45,7 +45,7 @@ public record CompanyPostResponse(
 			companyPost.getField().getName(),
 			companyPost.getViewCount(),
 			AuthorResponse.from(companyPost.getCompany()),
-			companyPost.getCreatedAt(),
+			companyPost.getPublishedAt(),
 			isNew,
 			isHot
 		);

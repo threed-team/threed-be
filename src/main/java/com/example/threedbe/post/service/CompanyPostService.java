@@ -1,10 +1,14 @@
 package com.example.threedbe.post.service;
 
+import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
+import javax.imageio.ImageIO;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,9 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.ListResponse;
+import com.example.threedbe.common.dto.LlmResponseDto;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
+import com.example.threedbe.common.service.LlmService;
+import com.example.threedbe.common.service.S3Service;
+import com.example.threedbe.crawler.dto.CrawledContentDto;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
@@ -28,13 +36,54 @@ import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.repository.CompanyPostRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CompanyPostService {
 
 	private final CompanyPostRepository companyPostRepository;
+	private final LlmService llmService;
+	private final S3Service s3Service;
+
+	@Transactional
+	public boolean createCompanyPost(CrawledContentDto dto) {
+		LlmResponseDto llmResponse = llmService.generate(dto.content());
+
+		BufferedImage bufferedImage = processThumbnailImage(dto.thumbnailImageUrl());
+		String title = dto.title();
+		String thumbnailUrl = s3Service.uploadThumbnailImage(bufferedImage, title);
+
+		String fieldName = llmResponse.field();
+		Field field = Field.of(fieldName)
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + fieldName));
+
+		String companyName = dto.sourceName();
+		Company company = Company.of(companyName)
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 회사가 아닙니다: " + companyName));
+
+		CompanyPost companyPost = new CompanyPost(
+			title,
+			llmResponse.summary(),
+			thumbnailUrl,
+			field,
+			dto.publishedAt(),
+			company,
+			dto.url()
+		);
+
+		companyPostRepository.save(companyPost);
+		log.info("새 회사 포스트 생성: {}, 회사: {}, 분야: {}", title, company, field);
+
+		return true;
+	}
+
+	public boolean existsBySourceUrl(String sourceUrl) {
+
+		return companyPostRepository.existsBySourceUrl(sourceUrl);
+	}
 
 	// TODO: QueryDSL로 변경
 	public PageResponse<CompanyPostResponse> search(CompanyPostSearchRequest companyPostSearchRequest) {
@@ -172,6 +221,17 @@ public class CompanyPostService {
 			.toList();
 
 		return ListResponse.from(posts);
+	}
+
+	private BufferedImage processThumbnailImage(String thumbnailUrl) {
+		try {
+			URL imageUrl = new URL(thumbnailUrl);
+
+			return ImageIO.read(imageUrl);
+		} catch (Exception e) {
+			log.error("썸네일 이미지 다운로드 및 업로드 중 오류 발생: {}", e.getMessage());
+			return null;
+		}
 	}
 
 }
