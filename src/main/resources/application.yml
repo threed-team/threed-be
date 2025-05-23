@@ -13,9 +13,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  ai:
-    openai:
-      api-key: api-key
 
 security:
   cors:
