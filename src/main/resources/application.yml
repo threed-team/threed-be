@@ -16,7 +16,7 @@ spring:
 
 security:
   cors:
-    allowed-origins: http://localhost:[*]
+    allowed-origins: http://localhost:3000
 
 springdoc:
   default-consumes-media-type: application/json;charset=UTF-8
@@ -38,7 +38,17 @@ oauth:
   google:
     client-id: client-id
     client-secret: client-secret
-    redirect-uri: http://localhost:8080/auth/google/callback
+    redirect-uri: http://localhost:3000/oauth/google/callback
+
+  kakao:
+    client-id: client-id
+    redirect-uri: http://localhost:3000/oauth/kakao/callback
+
+  github:
+    client-id: client-id
+    client-secret: client-secret
+    redirect-uri: http://localhost:3000/oauth/github/callback
+
 
 aws:
   s3:

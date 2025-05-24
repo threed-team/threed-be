@@ -51,7 +51,7 @@ public class Member {
 
 	private LocalDateTime deletedAt;
 
-	// 수정된 생성자 - 외부에서 AuthProvider 주입
+	// 생성자
 	public Member(AuthProvider authProvider, String email, String nickname, String profileImageUrl) {
 		this.authProvider = authProvider;
 		this.email = email;
@@ -84,11 +84,14 @@ public class Member {
 		bookmark.removePost();
 	}
 
+	public String getHardwareNo() {
+		return this.authProvider != null ? this.authProvider.getProviderId() : null;
+	}
+
 	@Override
 	public final boolean equals(Object o) {
 		if (!(o instanceof Member member))
 			return false;
-
 		return Objects.equals(id, member.id);
 	}
 

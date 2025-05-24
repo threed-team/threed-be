@@ -1,5 +1,7 @@
 package com.example.threedbe.auth.service.client;
 
+import java.util.List;
+
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -7,46 +9,46 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.threedbe.auth.config.GoogleOAuthProperties;
-import com.example.threedbe.auth.dto.token.GoogleTokenResponse;
-import com.example.threedbe.auth.dto.userinfo.GoogleUserInfo;
+import com.example.threedbe.auth.config.KakaoOAuthProperties;
+import com.example.threedbe.auth.dto.token.KakaoTokenResponse;
+import com.example.threedbe.auth.dto.userinfo.KakaoUserInfo;
 
 import lombok.RequiredArgsConstructor;
 
-@Component("GOOGLE")
+@Component("KAKAO")
 @RequiredArgsConstructor
-public class GoogleOAuthClient implements OAuthClient {
+public class KakaoOAuthClient implements OAuthClient {
 
 	private final RestTemplate restTemplate = new RestTemplate();
-	private final GoogleOAuthProperties googleOAuthProperties;
+	private final KakaoOAuthProperties kakaoOAuthProperties;
 
 	@Override
 	public String requestAccessToken(String code) {
-		String tokenUri = "https://oauth2.googleapis.com/token";
+		String tokenUri = "https://kauth.kakao.com/oauth/token";
 
 		String requestBody = "grant_type=authorization_code"
-			+ "&client_id=" + googleOAuthProperties.getClientId()
-			+ "&client_secret=" + googleOAuthProperties.getClientSecret()
-			+ "&redirect_uri=" + googleOAuthProperties.getRedirectUri()
+			+ "&client_id=" + kakaoOAuthProperties.getClientId()
+			+ "&redirect_uri=" + kakaoOAuthProperties.getRedirectUri()
 			+ "&code=" + code;
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setAccept(List.of(MediaType.APPLICATION_JSON));
 		HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
-		GoogleTokenResponse response = restTemplate.exchange(
+		KakaoTokenResponse response = restTemplate.exchange(
 			tokenUri,
 			HttpMethod.POST,
 			request,
-			GoogleTokenResponse.class
+			KakaoTokenResponse.class
 		).getBody();
 
 		return response.accessToken();
 	}
 
 	@Override
-	public GoogleUserInfo requestUserInfo(String accessToken) {
-		String uri = "https://www.googleapis.com/oauth2/v2/userinfo";
+	public KakaoUserInfo requestUserInfo(String accessToken) {
+		String uri = "https://kapi.kakao.com/v2/user/me";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setBearerAuth(accessToken);
@@ -56,7 +58,7 @@ public class GoogleOAuthClient implements OAuthClient {
 			uri,
 			HttpMethod.GET,
 			entity,
-			GoogleUserInfo.class
+			KakaoUserInfo.class
 		).getBody();
 	}
 }
