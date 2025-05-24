@@ -117,7 +117,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsAll(keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -126,7 +126,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -145,7 +145,7 @@ public class MemberPostService {
 							keyword,
 							pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -158,7 +158,7 @@ public class MemberPostService {
 							keyword,
 							pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -169,7 +169,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithoutFields(skillNames, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -178,7 +178,7 @@ public class MemberPostService {
 				memberPostResponses =
 					memberPostRepository.searchMemberPostsWithFields(fields, skillNames, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return MemberPostResponse.from(post, isNew, isHot);
@@ -192,7 +192,7 @@ public class MemberPostService {
 	// TODO: 쿼리 수 줄이기
 	@Transactional
 	public MemberPostDetailResponse findMemberPostDetail(Member member, Long postId) {
-		MemberPost memberPost = memberPostRepository.findById(postId)
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 		memberPost.increaseViewCount();
 
@@ -204,10 +204,10 @@ public class MemberPostService {
 
 		boolean isMyPost = memberPost.getMember().equals(member);
 
-		LocalDateTime createdAt = memberPost.getCreatedAt();
-		Long nextId = memberPostRepository.findNextId(createdAt)
+		LocalDateTime publishedAt = memberPost.getPublishedAt();
+		Long nextId = memberPostRepository.findNextId(publishedAt)
 			.orElse(null);
-		Long prevId = memberPostRepository.findPrevId(createdAt)
+		Long prevId = memberPostRepository.findPrevId(publishedAt)
 			.orElse(null);
 
 		return MemberPostDetailResponse.from(memberPost, bookmarkCount, isBookmarked, isMyPost, nextId, prevId);
@@ -226,7 +226,7 @@ public class MemberPostService {
 
 		List<MemberPostResponse> posts = memberPostRepository.findMemberPostsOrderByPopularity(startDate).stream()
 			.map(post -> {
-				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
 				return MemberPostResponse.from(post, isNew, true);
 			})
@@ -241,7 +241,7 @@ public class MemberPostService {
 		Long postId,
 		MemberPostUpdateRequest memberPostUpdateRequest) {
 
-		MemberPost memberPost = memberPostRepository.findById(postId)
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 
 		if (!memberPost.getMember().equals(member)) {
@@ -274,6 +274,22 @@ public class MemberPostService {
 		memberPost.update(newTitle, memberPostUpdateRequest.content(), field, thumbnailUrl, skills);
 
 		return MemberPostUpdateResponse.from(memberPost);
+	}
+
+	@Transactional
+	public void delete(Member member, Long postId) {
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+
+		if (!memberPost.getMember().equals(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
+		}
+
+		if (memberPost.isDraft()) {
+			throw new ThreedBadRequestException("릴리즈 전 포스트는 삭제할 수 없습니다: " + postId);
+		}
+
+		memberPostRepository.delete(memberPost);
 	}
 
 }

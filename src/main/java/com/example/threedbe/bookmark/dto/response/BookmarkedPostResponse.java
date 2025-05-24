@@ -56,7 +56,7 @@ public record BookmarkedPostResponse(
 			companyPost.getViewCount(),
 			AuthorResponse.from(companyPost.getCompany()),
 			null,
-			companyPost.getCreatedAt(),
+			companyPost.getPublishedAt(),
 			true,
 			isNew,
 			isHot
@@ -76,7 +76,7 @@ public record BookmarkedPostResponse(
 				.stream()
 				.map(skill -> skill.getSkill().getName())
 				.toList(),
-			memberPost.getReleasedAt(),
+			memberPost.getPublishedAt(),
 			false,
 			isNew,
 			isHot

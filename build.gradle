@@ -3,6 +3,9 @@ plugins {
     id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
 }
+ext {
+    springAiVersion = "1.0.0"
+}
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
@@ -31,6 +34,7 @@ dependencies {
     implementation 'javax.xml.bind:jaxb-api:2.3.1'
     implementation 'software.amazon.awssdk:s3:2.20.56'
 }
+
 
 tasks.named('test') {
     useJUnitPlatform()

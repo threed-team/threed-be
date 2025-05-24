@@ -28,7 +28,9 @@ import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.repository.CompanyPostRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -61,7 +63,7 @@ public class CompanyPostService {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return CompanyPostResponse.from(post, isNew, isHot);
@@ -70,7 +72,7 @@ public class CompanyPostService {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return CompanyPostResponse.from(post, isNew, isHot);
@@ -88,7 +90,7 @@ public class CompanyPostService {
 						keyword,
 						pageRequest)
 					.map(post -> {
-						boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+						boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 						boolean isHot = popularPosts.contains(post);
 
 						return CompanyPostResponse.from(post, isNew, isHot);
@@ -100,7 +102,7 @@ public class CompanyPostService {
 						keyword,
 						pageRequest)
 					.map(post -> {
-						boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+						boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 						boolean isHot = popularPosts.contains(post);
 
 						return CompanyPostResponse.from(post, isNew, isHot);
@@ -111,7 +113,7 @@ public class CompanyPostService {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return CompanyPostResponse.from(post, isNew, isHot);
@@ -120,7 +122,7 @@ public class CompanyPostService {
 				companyPostResponses =
 					companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
 						.map(post -> {
-							boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
 
 							return CompanyPostResponse.from(post, isNew, isHot);
@@ -144,10 +146,10 @@ public class CompanyPostService {
 			.stream()
 			.anyMatch(bookmark -> bookmark.getMember().equals(member));
 
-		LocalDateTime createdAt = companyPost.getCreatedAt();
-		Long nextId = companyPostRepository.findNextId(createdAt)
+		LocalDateTime publishedAt = companyPost.getPublishedAt();
+		Long nextId = companyPostRepository.findNextId(publishedAt)
 			.orElse(null);
-		Long prevId = companyPostRepository.findPrevId(createdAt)
+		Long prevId = companyPostRepository.findPrevId(publishedAt)
 			.orElse(null);
 
 		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, isBookmarked, nextId, prevId);
@@ -165,7 +167,7 @@ public class CompanyPostService {
 
 		List<CompanyPostResponse> posts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate).stream()
 			.map(post -> {
-				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
 				return CompanyPostResponse.from(post, isNew, true);
 			})

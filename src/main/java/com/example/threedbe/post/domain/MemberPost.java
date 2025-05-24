@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.member.domain.Member;
 
@@ -23,8 +24,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "member_posts")
 @Entity
 @Getter
-@Filter(name = "releasedPostFilter", condition = "released_at IS NOT NULL")
-@FilterDef(name = "releasedPostFilter")
+@Filter(name = "deletedPostFilter", condition = "deleted_at IS NULL")
+@FilterDef(name = "deletedPostFilter")
+@SQLDelete(sql = "UPDATE member_posts SET deleted_at = NOW() WHERE id = ?")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorValue("MEMBER")
 public class MemberPost extends Post {
@@ -39,14 +41,14 @@ public class MemberPost extends Post {
 	@OneToMany(mappedBy = "memberPost", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MemberPostSkill> skills;
 
-	private LocalDateTime releasedAt;
+	private LocalDateTime deletedAt;
 
 	public MemberPost(Member member) {
 		this.member = member;
 	}
 
 	public boolean isDraft() {
-		return releasedAt == null;
+		return super.publishedAt == null;
 	}
 
 	public boolean isNotDraft() {
@@ -56,7 +58,7 @@ public class MemberPost extends Post {
 	public void release(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
 		super.update(title, content, thumbnailUrl, field);
 		skills.forEach(this::addSkill);
-		this.releasedAt = LocalDateTime.now();
+		super.publishedAt = LocalDateTime.now();
 	}
 
 	public void update(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {

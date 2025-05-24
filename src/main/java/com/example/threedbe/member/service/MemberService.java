@@ -52,7 +52,6 @@ public class MemberService {
 		ProviderType providerType,
 		String providerId
 	) {
-		//  providerId 기준으로 우선 조회하고, 이메일 중복되면 예외 발생
 		return memberRepository.findByAuthProviderProviderTypeAndAuthProviderProviderId(providerType, providerId)
 			.or(() -> {
 				Optional<Member> sameEmail = memberRepository.findByEmail(email);
@@ -71,17 +70,14 @@ public class MemberService {
 			.get();
 	}
 
-	//  providerType + providerId 기준으로 찾는 메서드
 	public Optional<Member> findByProviderAndProviderId(ProviderType providerType, String providerId) {
 		return memberRepository.findByAuthProviderProviderTypeAndAuthProviderProviderId(providerType, providerId);
 	}
 
-	//  이메일로 회원 찾는 메서드
 	public Optional<Member> findByEmail(String email) {
 		return memberRepository.findByEmail(email);
 	}
 
-	// TODO: N+1 문제 해결하기
 	public PageResponse<AuthoredPostResponse> findAuthoredPosts(
 		Member member,
 		AuthoredPostRequest authoredPostRequest) {
@@ -95,7 +91,7 @@ public class MemberService {
 				member.getId(),
 				pageRequest)
 			.map(post -> {
-				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7)); //  중복 제거 완료
 				boolean isHot = popularPosts.contains(post);
 				return AuthoredPostResponse.from(post, isNew, isHot);
 			});

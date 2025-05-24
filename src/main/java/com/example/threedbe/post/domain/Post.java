@@ -1,12 +1,17 @@
 package com.example.threedbe.post.domain;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
+import com.example.threedbe.common.exception.ThreedBadRequestException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -28,6 +33,9 @@ import lombok.NoArgsConstructor;
 @Table(name = "posts")
 @Entity
 @Getter
+@Filter(name = "publishedPostFilter", condition = "published_at IS NOT NULL")
+@FilterDef(name = "publishedPostFilter")
+@SQLDelete(sql = "UPDATE posts SET updated_at = NOW() WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorColumn(name = "post_type")
@@ -55,6 +63,8 @@ public abstract class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Bookmark> bookmarks;
 
+	protected LocalDateTime publishedAt;
+
 	public void increaseViewCount() {
 		this.viewCount++;
 	}
@@ -64,10 +74,25 @@ public abstract class Post extends BaseEntity {
 	}
 
 	protected void update(String title, String content, String thumbnailImageUrl, Field field) {
+		validateTitle(title);
+		validateContent(content);
+
 		this.title = title;
 		this.content = content;
 		this.thumbnailImageUrl = thumbnailImageUrl;
 		this.field = field;
+	}
+
+	private void validateTitle(String title) {
+		if (title.length() > 100) {
+			throw new ThreedBadRequestException("게시글 제목은 100자 이내로 작성해야 합니다.");
+		}
+	}
+
+	private void validateContent(String content) {
+		if (content.length() > 10000) {
+			throw new ThreedBadRequestException("게시글 내용은 10,000자 이내로 작성해야 합니다.");
+		}
 	}
 
 	@Override

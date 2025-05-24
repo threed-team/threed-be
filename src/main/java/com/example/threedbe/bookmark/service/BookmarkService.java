@@ -71,19 +71,19 @@ public class BookmarkService {
 		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
 
 		PageRequest pageRequest = PageRequest.of(bookmarkedPostRequest.page() - 1, bookmarkedPostRequest.size());
-		Page<BookmarkedPostResponse> bookmarkedPosts = postRepository.findByBookmarksMemberIdOrderByCreatedAtDesc(
+		Page<BookmarkedPostResponse> bookmarkedPosts = postRepository.findByBookmarksMemberIdOrderByPublishedAtDesc(
 				member.getId(),
 				pageRequest)
 			.map(post -> {
 				if (post instanceof CompanyPost companyPost) {
-					boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+					boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
 					List<CompanyPost> popularPosts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate);
 					boolean isHot = popularPosts.contains(companyPost);
 
 					return BookmarkedPostResponse.from(companyPost, isNew, isHot);
 				} else if (post instanceof MemberPost memberPost) {
-					boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7));
+					boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
 					List<MemberPost> popularPosts = memberPostRepository.findMemberPostsOrderByPopularity(startDate);
 					boolean isHot = popularPosts.contains(memberPost);
