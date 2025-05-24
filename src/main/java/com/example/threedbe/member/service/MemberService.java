@@ -2,6 +2,7 @@ package com.example.threedbe.member.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -9,9 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.threedbe.common.dto.PageResponse;
+import com.example.threedbe.common.exception.ThreedConflictException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.common.exception.ThreedUnauthorizedException;
+import com.example.threedbe.member.domain.AuthProvider;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.member.domain.ProviderType;
 import com.example.threedbe.member.dto.request.AuthoredPostRequest;
 import com.example.threedbe.member.dto.response.AuthoredPostResponse;
 import com.example.threedbe.member.repository.MemberRepository;
@@ -40,7 +44,40 @@ public class MemberService {
 		return member;
 	}
 
-	// TODO: N+1 문제 해결하기
+	@Transactional
+	public Member findOrCreate(
+		String email,
+		String name,
+		String profileImageUrl,
+		ProviderType providerType,
+		String providerId
+	) {
+		return memberRepository.findByAuthProviderProviderTypeAndAuthProviderProviderId(providerType, providerId)
+			.or(() -> {
+				Optional<Member> sameEmail = memberRepository.findByEmail(email);
+				if (sameEmail.isPresent()) {
+					ProviderType existingProvider = sameEmail.get().getAuthProvider().getProviderType();
+					throw new ThreedConflictException(String.format(
+						"'%s' 이메일은 이미 %s 계정으로 가입되어 있습니다. 해당 소셜로 로그인해주세요.",
+						email,
+						existingProvider.name()
+					));
+				}
+				AuthProvider authProvider = new AuthProvider(providerType, providerId);
+				Member newMember = new Member(authProvider, email, name, profileImageUrl);
+				return Optional.of(memberRepository.save(newMember));
+			})
+			.get();
+	}
+
+	public Optional<Member> findByProviderAndProviderId(ProviderType providerType, String providerId) {
+		return memberRepository.findByAuthProviderProviderTypeAndAuthProviderProviderId(providerType, providerId);
+	}
+
+	public Optional<Member> findByEmail(String email) {
+		return memberRepository.findByEmail(email);
+	}
+
 	public PageResponse<AuthoredPostResponse> findAuthoredPosts(
 		Member member,
 		AuthoredPostRequest authoredPostRequest) {
@@ -54,14 +91,11 @@ public class MemberService {
 				member.getId(),
 				pageRequest)
 			.map(post -> {
-				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-
+				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7)); //  중복 제거 완료
 				boolean isHot = popularPosts.contains(post);
-
 				return AuthoredPostResponse.from(post, isNew, isHot);
 			});
 
 		return PageResponse.from(authoredPosts);
 	}
-
 }

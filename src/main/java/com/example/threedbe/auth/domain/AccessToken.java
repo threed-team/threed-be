@@ -44,5 +44,4 @@ public class AccessToken implements JwtToken {
 	public String getSecretKey(AuthProperties authProperties) {
 		return authProperties.getAccessKey();
 	}
-
 }

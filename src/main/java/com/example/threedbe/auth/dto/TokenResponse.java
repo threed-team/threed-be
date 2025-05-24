@@ -1,4 +1,6 @@
 package com.example.threedbe.auth.dto;
 
-public record TokenResponse(String accessToken) {
+import com.example.threedbe.member.dto.response.UserResponse;
+
+public record TokenResponse(String accessToken, UserResponse user) {
 }
