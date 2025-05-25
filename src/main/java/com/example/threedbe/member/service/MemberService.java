@@ -78,6 +78,7 @@ public class MemberService {
 		return memberRepository.findByEmail(email);
 	}
 
+	// TODO: N+1 문제 해결하기
 	public PageResponse<AuthoredPostResponse> findAuthoredPosts(
 		Member member,
 		AuthoredPostRequest authoredPostRequest) {
@@ -91,8 +92,9 @@ public class MemberService {
 				member.getId(),
 				pageRequest)
 			.map(post -> {
-				boolean isNew = post.getCreatedAt().isAfter(now.minusDays(7)); //  중복 제거 완료
+				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 				boolean isHot = popularPosts.contains(post);
+
 				return AuthoredPostResponse.from(post, isNew, isHot);
 			});
 
