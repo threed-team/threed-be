@@ -11,12 +11,16 @@ import com.example.threedbe.auth.service.AuthService;
 import com.example.threedbe.auth.service.OAuthLoginService;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.member.domain.ProviderType;
+import com.example.threedbe.member.dto.response.UserResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "auth-controller", description = "소셜 로그인 및 인증 관련 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
@@ -56,6 +60,15 @@ public class AuthController {
 			authService.logout(null, response); // 쿠키만 삭제
 		}
 		return ResponseEntity.ok().build();
+	}
+
+	@Operation(summary = "Access Token 재발급", description = "Refresh Token을 이용해 Access Token을 재발급합니다.")
+	@GetMapping("/reissue")
+	public ResponseEntity<TokenResponse> reissueAccessToken(HttpServletRequest request) {
+		String refreshToken = extractCookie(request, "refreshToken");
+		String newAccessToken = authService.reissueAccessToken(refreshToken);
+		Member member = authService.parseAccessToken(newAccessToken);
+		return ResponseEntity.ok(new TokenResponse(newAccessToken, UserResponse.from(member)));
 	}
 
 	private String extractCookie(HttpServletRequest request, String name) {
