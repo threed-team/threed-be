@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,14 +18,17 @@ import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
+import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.common.service.S3Service;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
+import com.example.threedbe.post.domain.MemberPostImage;
 import com.example.threedbe.post.domain.PopularCondition;
 import com.example.threedbe.post.domain.Skill;
+import com.example.threedbe.post.dto.request.MemberPostImageRequest;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
@@ -53,6 +57,27 @@ public class MemberPostService {
 		MemberPost memberPost = memberPostRepository.save(new MemberPost(member));
 
 		return MemberPostSaveResponse.from(memberPost);
+	}
+
+	@Transactional
+	public PresignedUrlResponse generateImageUrl(
+		Member member,
+		Long postId,
+		MemberPostImageRequest memberPostImageRequest) {
+
+		MemberPost memberPost = memberPostRepository.findById(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+
+		if (!memberPost.getMember().equals(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
+		}
+
+		String filePath = generateImageFilePath(postId, memberPostImageRequest);
+		PresignedUrlResponse presignedUrlResponse = s3Service.getPresignedUrl(filePath);
+
+		memberPost.addImage(new MemberPostImage(memberPost, presignedUrlResponse.fileUrl()));
+
+		return presignedUrlResponse;
 	}
 
 	@Transactional
@@ -290,6 +315,19 @@ public class MemberPostService {
 		}
 
 		memberPostRepository.delete(memberPost);
+	}
+
+	private String generateImageFilePath(Long postId, MemberPostImageRequest memberPostImageRequest) {
+		return String.format("posts/%d/images/%s.%s",
+			postId,
+			UUID.randomUUID(),
+			getFileExtension(memberPostImageRequest.fileName())
+		);
+	}
+
+	private String getFileExtension(String fileName) {
+		int lastDotIndex = fileName.lastIndexOf('.');
+		return lastDotIndex == -1 ? "" : fileName.substring(lastDotIndex + 1).toLowerCase();
 	}
 
 }

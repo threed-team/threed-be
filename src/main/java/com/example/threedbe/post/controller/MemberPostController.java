@@ -14,7 +14,9 @@ import com.example.threedbe.common.annotation.CurrentMember;
 import com.example.threedbe.common.annotation.LoginMember;
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
+import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.post.dto.request.MemberPostImageRequest;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
@@ -41,6 +43,18 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		MemberPostSaveResponse memberPostSaveResponse = memberPostService.saveDraft(member);
 
 		return ResponseEntity.ok(memberPostSaveResponse);
+	}
+
+	@PostMapping("/{postId}/images")
+	public ResponseEntity<PresignedUrlResponse> generateImageUrl(
+		@LoginMember Member member,
+		@PathVariable("postId") Long postId,
+		@RequestBody @Valid MemberPostImageRequest memberPostImageRequest) {
+
+		PresignedUrlResponse presignedUrlResponse =
+			memberPostService.generateImageUrl(member, postId, memberPostImageRequest);
+
+		return ResponseEntity.ok(presignedUrlResponse);
 	}
 
 	@Override

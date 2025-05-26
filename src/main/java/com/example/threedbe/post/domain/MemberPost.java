@@ -35,7 +35,7 @@ public class MemberPost extends Post {
 	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
 
-	@OneToMany(mappedBy = "memberPost", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	@OneToMany(mappedBy = "memberPost", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<MemberPostImage> images;
 
 	@OneToMany(mappedBy = "memberPost", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -66,6 +66,10 @@ public class MemberPost extends Post {
 		this.skills.removeIf(memberPostSkill -> skills.stream()
 			.noneMatch(newSkill -> newSkill.getName().equals(memberPostSkill.getSkill().getName())));
 		skills.forEach(this::addSkillIfNotExists);
+	}
+
+	public void addImage(MemberPostImage image) {
+		this.images.add(image);
 	}
 
 	private void addSkill(Skill skill) {

@@ -30,4 +30,9 @@ public class MemberPostImage {
 	@Column(nullable = false)
 	private String imageUrl;
 
+	public MemberPostImage(MemberPost memberPost, String imageUrl) {
+		this.memberPost = memberPost;
+		this.imageUrl = imageUrl;
+	}
+
 }
