@@ -13,8 +13,8 @@ import javax.imageio.ImageIO;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 import com.example.threedbe.common.exception.ThreedServerErrorException;
+import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 
 import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -81,7 +81,7 @@ public class S3Service {
 		}
 	}
 
-	public PresignedUrlResponse getPresignedUrl(String filePath) {
+	public PresignedUrlResponse generatePresignedUrl(String filePath) {
 		PutObjectPresignRequest presignRequest = buildPresignedRequest(filePath);
 		String presignedUrl = s3Presigner.presignPutObject(presignRequest).url().toString();
 		String fileUrl = createFileUrl(filePath);

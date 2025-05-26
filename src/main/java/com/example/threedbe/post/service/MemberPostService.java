@@ -18,7 +18,6 @@ import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
-import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.common.service.S3Service;
@@ -37,6 +36,7 @@ import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
+import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 import com.example.threedbe.post.repository.MemberPostRepository;
 import com.example.threedbe.post.repository.SkillRepository;
 
@@ -72,8 +72,8 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
-		String filePath = generateImageFilePath(postId, memberPostImageRequest);
-		PresignedUrlResponse presignedUrlResponse = s3Service.getPresignedUrl(filePath);
+		PresignedUrlResponse presignedUrlResponse =
+			s3Service.generatePresignedUrl(generateImageFilePath(postId, memberPostImageRequest));
 
 		memberPost.addImage(new MemberPostImage(memberPost, presignedUrlResponse.fileUrl()));
 
