@@ -1,6 +1,7 @@
 package com.example.threedbe.post.dto.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.example.threedbe.post.domain.MemberPost;
 
@@ -20,11 +21,17 @@ public record MemberPostDetailResponse(
 	@Schema(description = "썸네일 이미지 주소", example = "https://d2.naver.com/content/images/2023/07/-----------2023-07-06------4-16-49.png")
 	String thumbnailImageUrl,
 
+	@Schema(description = "분야", example = "Frontend")
+	String field,
+
 	@Schema(description = "조회수", example = "0")
 	int viewCount,
 
 	@Schema(description = "저자")
 	AuthorResponse author,
+
+	@Schema(description = "기술들", example = "[\"REACT\", \"JAVASCRIPT\"]")
+	List<String> skills,
 
 	@Schema(description = "생성일", example = "2025-05-08T20:12:14")
 	LocalDateTime createdAt,
@@ -59,8 +66,13 @@ public record MemberPostDetailResponse(
 			memberPost.getTitle(),
 			memberPost.getContent(),
 			memberPost.getThumbnailImageUrl(),
+			memberPost.getField().getName(),
 			memberPost.getViewCount(),
 			AuthorResponse.from(memberPost.getMember()),
+			memberPost.getSkills()
+				.stream()
+				.map(skill -> skill.getSkill().getName())
+				.toList(),
 			memberPost.getPublishedAt(),
 			bookmarkCount,
 			isBookmarked,
