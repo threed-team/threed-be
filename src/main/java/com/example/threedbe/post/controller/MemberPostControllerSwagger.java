@@ -9,6 +9,7 @@ import com.example.threedbe.common.annotation.SwaggerErrorCode500;
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.post.dto.request.MemberPostImageRequest;
 import com.example.threedbe.post.dto.request.MemberPostPopularRequest;
 import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
@@ -17,6 +18,7 @@ import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
+import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,6 +43,24 @@ public interface MemberPostControllerSwagger {
 	@SwaggerErrorCode500
 	@SecurityRequirement(name = "Authorization")
 	ResponseEntity<MemberPostSaveResponse> saveDraft(@Parameter(hidden = true) Member member);
+
+	@Operation(
+		summary = "회원 포스트 이미지 URL 생성",
+		responses = {
+			@ApiResponse(
+				responseCode = "200",
+				description = "회원 포스트 이미지 URL 생성 성공",
+				content = @Content(schema = @Schema(implementation = PresignedUrlResponse.class)))
+		})
+	@SwaggerErrorCode400
+	@SwaggerErrorCode401
+	@SwaggerErrorCode404(description = "회원 포스트가 존재하지 않는 경우")
+	@SwaggerErrorCode500
+	@SecurityRequirement(name = "Authorization")
+	ResponseEntity<PresignedUrlResponse> generateImageUrl(
+		@Parameter(hidden = true) Member member,
+		Long postId,
+		MemberPostImageRequest memberPostImageRequest);
 
 	@Operation(
 		summary = "회원 포스트 생성(릴리즈)",
