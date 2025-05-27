@@ -1,7 +1,6 @@
 package com.example.threedbe.post.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -44,10 +43,8 @@ public class CompanyPostService {
 		List<Field> fields = convertToFields(request.fields());
 		List<Company> companies = convertToCompanies(request.companies());
 		boolean excludeCompanies = companies.contains(Company.ETC);
-
 		Pageable pageable = createPageRequest(request);
 		String keyword = extractKeyword(request);
-
 		Page<CompanyPost> resultPage = companyPostRepository.searchCompanyPosts(
 			fields,
 			excludeCompanies ? filterExcludedCompanies(companies) : companies,
@@ -62,6 +59,36 @@ public class CompanyPostService {
 			resultPage.map(post -> toCompanyPostResponse(post, now, popularPostIds));
 
 		return PageResponse.from(responsePage);
+	}
+
+	@Transactional
+	public CompanyPostDetailResponse findCompanyPostDetail(Member member, Long postId) {
+		CompanyPost companyPost = findCompanyPostById(postId);
+		companyPost.increaseViewCount();
+
+		int bookmarkCount = companyPost.getBookmarkCount();
+		boolean isBookmarked = isBookmarkedByMember(companyPost, member);
+
+		LocalDateTime publishedAt = companyPost.getPublishedAt();
+		Long nextId = findNextPostId(publishedAt);
+		Long prevId = findPreviousPostId(publishedAt);
+
+		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, isBookmarked, nextId, prevId);
+	}
+
+	public ListResponse<CompanyPostResponse> findPopularCompanyPosts(CompanyPostPopularRequest request) {
+		PopularCondition condition = getPopularCondition(request);
+
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime startDate = condition.calculateStartDate(now);
+
+		List<CompanyPost> popularPosts = companyPostRepository.findPopularPosts(startDate);
+
+		List<CompanyPostResponse> responses = popularPosts.stream()
+			.map(post -> toCompanyPostResponse(post, now))
+			.toList();
+
+		return ListResponse.from(responses);
 	}
 
 	private List<Field> convertToFields(List<String> fieldNames) {
@@ -115,7 +142,8 @@ public class CompanyPostService {
 
 	private List<Company> filterExcludedCompanies(List<Company> companies) {
 
-		return Company.MAIN_COMPANIES.stream()
+		return Company.MAIN_COMPANIES
+			.stream()
 			.filter(company -> !companies.contains(company))
 			.toList();
 	}
@@ -132,47 +160,43 @@ public class CompanyPostService {
 		return publishedAt.isAfter(now.minusDays(NEW_POST_DAYS_THRESHOLD));
 	}
 
-	// TODO: 쿼리 수 줄이기
-	@Transactional
-	public CompanyPostDetailResponse findCompanyPostDetail(Member member, Long postId) {
-		CompanyPost companyPost = companyPostRepository.findById(postId)
+	private CompanyPost findCompanyPostById(Long postId) {
+
+		return companyPostRepository.findById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
-		companyPost.increaseViewCount();
-
-		int bookmarkCount = companyPost.getBookmarkCount();
-
-		boolean isBookmarked = companyPost.getBookmarks()
-			.stream()
-			.anyMatch(bookmark -> bookmark.getMember().equals(member));
-
-		LocalDateTime publishedAt = companyPost.getPublishedAt();
-		Long nextId = companyPostRepository.findNextId(publishedAt)
-			.orElse(null);
-		Long prevId = companyPostRepository.findPrevId(publishedAt)
-			.orElse(null);
-
-		return CompanyPostDetailResponse.from(companyPost, bookmarkCount, isBookmarked, nextId, prevId);
 	}
 
-	// TODO: QueryDSL로 변경
-	public ListResponse<CompanyPostResponse> findPopularCompanyPosts(
-		CompanyPostPopularRequest companyPostPopularRequest) {
+	private boolean isBookmarkedByMember(CompanyPost post, Member member) {
 
-		PopularCondition condition = PopularCondition.of(companyPostPopularRequest.condition())
-			.orElseThrow(() -> new ThreedBadRequestException("잘못된 인기 조건입니다: " + companyPostPopularRequest.condition()));
+		return post.getBookmarks()
+			.stream()
+			.anyMatch(bookmark -> bookmark.getMember().equals(member));
+	}
 
-		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime startDate = condition.calculateStartDate(now);
+	private Long findNextPostId(LocalDateTime publishedAt) {
 
-		List<CompanyPostResponse> posts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate).stream()
-			.map(post -> {
-				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
+		return companyPostRepository.findNextId(publishedAt).orElse(null);
+	}
 
-				return CompanyPostResponse.from(post, isNew, true);
-			})
-			.toList();
+	private Long findPreviousPostId(LocalDateTime publishedAt) {
 
-		return ListResponse.from(posts);
+		return companyPostRepository.findPreviousId(publishedAt).orElse(null);
+	}
+
+	private PopularCondition getPopularCondition(CompanyPostPopularRequest request) {
+
+		return PopularCondition.of(request.condition())
+			.orElseThrow(() -> new ThreedBadRequestException("잘못된 인기 조건입니다: " + request.condition()));
+	}
+
+	private CompanyPostResponse toCompanyPostResponse(CompanyPost post, LocalDateTime now) {
+		if (post == null) {
+			throw new ThreedBadRequestException("포스트 정보가 없습니다.");
+		}
+
+		boolean isNew = isNewPost(post.getPublishedAt(), now);
+
+		return CompanyPostResponse.from(post, isNew, true);
 	}
 
 }

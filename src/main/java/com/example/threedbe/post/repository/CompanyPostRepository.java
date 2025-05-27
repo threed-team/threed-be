@@ -14,14 +14,6 @@ public interface CompanyPostRepository extends JpaRepository<CompanyPost, Long>,
 
 	Optional<Long> findPreviousId(LocalDateTime publishedAt);
 
-	@Query("SELECT cp.id FROM CompanyPost cp WHERE (cp.publishedAt < :publishedAt) ORDER BY cp.publishedAt DESC LIMIT 1")
-	Optional<Long> findNextId(@Param("publishedAt") LocalDateTime publishedAt);
-
-	@Query("SELECT cp.id FROM CompanyPost cp WHERE (cp.publishedAt > :publishedAt) ORDER BY cp.publishedAt ASC LIMIT 1")
-	Optional<Long> findPrevId(@Param("publishedAt") LocalDateTime publishedAt);
-
-	@Query("SELECT cp FROM CompanyPost cp WHERE cp.publishedAt > :publishedAt " +
-		"ORDER BY (cp.viewCount + SIZE(cp.bookmarks) * 2) DESC LIMIT 10")
-	List<CompanyPost> findCompanyPostsOrderByPopularity(@Param("publishedAt") LocalDateTime publishedAt);
+	List<CompanyPost> findPopularPosts(LocalDateTime publishedAfter);
 
 }

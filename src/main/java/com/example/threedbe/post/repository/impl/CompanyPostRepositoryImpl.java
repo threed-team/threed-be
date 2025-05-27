@@ -4,6 +4,7 @@ import static com.example.threedbe.post.domain.QCompanyPost.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,6 +58,30 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 			);
 
 		return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+	}
+
+	@Override
+	public Optional<Long> findNextId(LocalDateTime publishedAt) {
+		return Optional.ofNullable(
+			queryFactory
+				.select(companyPost.id)
+				.from(companyPost)
+				.where(companyPost.publishedAt.lt(publishedAt))
+				.orderBy(companyPost.publishedAt.desc())
+				.fetchFirst()
+		);
+	}
+
+	@Override
+	public Optional<Long> findPreviousId(LocalDateTime publishedAt) {
+		return Optional.ofNullable(
+			queryFactory
+				.select(companyPost.id)
+				.from(companyPost)
+				.where(companyPost.publishedAt.gt(publishedAt))
+				.orderBy(companyPost.publishedAt.asc())
+				.fetchFirst()
+		);
 	}
 
 	@Override
