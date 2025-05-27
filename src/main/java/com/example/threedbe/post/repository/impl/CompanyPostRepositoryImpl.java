@@ -94,6 +94,17 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 			.fetch();
 	}
 
+	@Override
+	public Optional<CompanyPost> findCompanyPostDetailById(Long postId) {
+		CompanyPost post = queryFactory
+			.selectFrom(companyPost)
+			.leftJoin(companyPost.bookmarks).fetchJoin()
+			.where(companyPost.id.eq(postId))
+			.fetchOne();
+
+		return Optional.ofNullable(post);
+	}
+
 	private BooleanExpression fieldsIn(List<Field> fields) {
 		return fields != null && !fields.isEmpty() ?
 			companyPost.field.in(fields) : null;

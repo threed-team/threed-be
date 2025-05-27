@@ -1,16 +1,12 @@
 package com.example.threedbe.post.service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
@@ -40,11 +36,11 @@ public class CompanyPostService {
 	private static final PopularCondition DEFAULT_POPULAR_CONDITION = PopularCondition.WEEK;
 
 	public PageResponse<CompanyPostResponse> search(CompanyPostSearchRequest request) {
-		List<Field> fields = convertToFields(request.fields());
-		List<Company> companies = convertToCompanies(request.companies());
+		List<Field> fields = Field.fromNames(request.fields());
+		List<Company> companies = Company.fromNames(request.companies());
 		boolean excludeCompanies = companies.contains(Company.ETC);
-		Pageable pageable = createPageRequest(request);
-		String keyword = extractKeyword(request);
+		String keyword = request.extractKeyword();
+		Pageable pageable = request.toPageRequest();
 		Page<CompanyPost> resultPage = companyPostRepository.searchCompanyPosts(
 			fields,
 			excludeCompanies ? filterExcludedCompanies(companies) : companies,
@@ -162,7 +158,7 @@ public class CompanyPostService {
 
 	private CompanyPost findCompanyPostById(Long postId) {
 
-		return companyPostRepository.findById(postId)
+		return companyPostRepository.findCompanyPostDetailById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
 	}
 

@@ -26,4 +26,6 @@ public interface CompanyPostRepositoryCustom {
 
 	List<CompanyPost> findPopularPosts(LocalDateTime publishedAfter);
 
+	Optional<CompanyPost> findCompanyPostDetailById(Long postId);
+
 }
