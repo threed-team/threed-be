@@ -78,7 +78,7 @@ public class BookmarkService {
 				if (post instanceof CompanyPost companyPost) {
 					boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 
-					List<CompanyPost> popularPosts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate);
+					List<CompanyPost> popularPosts = companyPostRepository.findPopularPosts(startDate);
 					boolean isHot = popularPosts.contains(companyPost);
 
 					return BookmarkedPostResponse.from(companyPost, isNew, isHot);

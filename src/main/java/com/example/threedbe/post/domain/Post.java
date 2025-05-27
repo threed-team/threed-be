@@ -12,6 +12,7 @@ import org.hibernate.annotations.SQLDelete;
 import com.example.threedbe.bookmark.domain.Bookmark;
 import com.example.threedbe.common.domain.BaseEntity;
 import com.example.threedbe.common.exception.ThreedBadRequestException;
+import com.example.threedbe.member.domain.Member;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -40,6 +41,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @DiscriminatorColumn(name = "post_type")
 public abstract class Post extends BaseEntity {
+
+	private static final int NEW_POST_DAYS_THRESHOLD = 7;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -71,6 +74,15 @@ public abstract class Post extends BaseEntity {
 
 	public int getBookmarkCount() {
 		return this.bookmarks.size();
+	}
+
+	public boolean isBookmarkedBy(Member member) {
+		return this.bookmarks.stream()
+			.anyMatch(bookmark -> bookmark.getMember().equals(member));
+	}
+
+	public boolean isNew(LocalDateTime now) {
+		return publishedAt.isAfter(now.minusDays(NEW_POST_DAYS_THRESHOLD));
 	}
 
 	protected void update(String title, String content, String thumbnailImageUrl, Field field) {

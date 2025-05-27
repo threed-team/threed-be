@@ -33,13 +33,32 @@ public enum Company {
 
 	private final String logoImageUrl;
 
-	public static final List<Company> MAIN_COMPANIES =
-		List.of(NAVER, KAKAO, DEVOCEAN, TOSS, MY_REAL_TRIP, LINE, DAANGN);
+	public static List<Company> filterExcludedCompanies(List<Company> companies) {
+		List<Company> mainCompanies = List.of(NAVER, KAKAO, DEVOCEAN, TOSS, MY_REAL_TRIP, LINE, DAANGN);
+
+		return mainCompanies
+			.stream()
+			.filter(company -> !companies.contains(company))
+			.toList();
+	}
 
 	public static Optional<Company> of(String name) {
 		return Arrays.stream(Company.values())
 			.filter(company -> company.getName().equals(name))
 			.findFirst();
+	}
+
+	public static Company fromName(String name) {
+		return of(name)
+			.orElseThrow(() -> new IllegalArgumentException("등록된 회사가 아닙니다: " + name));
+	}
+
+	public static List<Company> fromNames(List<String> names) {
+		return Optional.ofNullable(names)
+			.orElse(List.of())
+			.stream()
+			.map(Company::fromName)
+			.toList();
 	}
 
 }
