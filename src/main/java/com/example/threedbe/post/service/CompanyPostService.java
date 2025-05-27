@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -28,9 +29,7 @@ import com.example.threedbe.post.dto.response.CompanyPostResponse;
 import com.example.threedbe.post.repository.CompanyPostRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,99 +37,99 @@ public class CompanyPostService {
 
 	private final CompanyPostRepository companyPostRepository;
 
-	// TODO: QueryDSL로 변경
-	public PageResponse<CompanyPostResponse> search(CompanyPostSearchRequest companyPostSearchRequest) {
-		List<Field> fields = Optional.ofNullable(companyPostSearchRequest.fields())
-			.orElse(Collections.emptyList())
-			.stream()
-			.map(name -> Field.of(name).orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + name)))
-			.toList();
-		List<Company> companies = Optional.ofNullable(companyPostSearchRequest.companies())
-			.orElse(Collections.emptyList())
-			.stream()
-			.map(name -> Company.of(name).orElseThrow(() -> new ThreedNotFoundException("등록된 회사가 아닙니다: " + name)))
-			.toList();
+	private static final int NEW_POST_DAYS_THRESHOLD = 7;
+	private static final PopularCondition DEFAULT_POPULAR_CONDITION = PopularCondition.WEEK;
 
-		PageRequest pageRequest = PageRequest.of(companyPostSearchRequest.page() - 1, companyPostSearchRequest.size());
-		String keyword =
-			StringUtils.hasText(companyPostSearchRequest.keyword()) ? companyPostSearchRequest.keyword() : null;
-		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
-		List<CompanyPost> popularPosts = companyPostRepository.findCompanyPostsOrderByPopularity(startDate);
+	public PageResponse<CompanyPostResponse> search(CompanyPostSearchRequest request) {
+		List<Field> fields = convertToFields(request.fields());
+		List<Company> companies = convertToCompanies(request.companies());
+		boolean excludeCompanies = companies.contains(Company.ETC);
+
+		Pageable pageable = createPageRequest(request);
+		String keyword = extractKeyword(request);
+
+		Page<CompanyPost> resultPage = companyPostRepository.searchCompanyPosts(
+			fields,
+			excludeCompanies ? filterExcludedCompanies(companies) : companies,
+			keyword,
+			excludeCompanies,
+			pageable
+		);
+
 		LocalDateTime now = LocalDateTime.now();
-		Page<CompanyPostResponse> companyPostResponses;
-		if (companies.isEmpty()) {
-			if (fields.isEmpty()) {
-				companyPostResponses =
-					companyPostRepository.searchCompanyPostsAll(keyword, pageRequest)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
+		List<Long> popularPostIds = findPopularPostIds(now);
+		Page<CompanyPostResponse> responsePage =
+			resultPage.map(post -> toCompanyPostResponse(post, now, popularPostIds));
 
-							return CompanyPostResponse.from(post, isNew, isHot);
-						});
-			} else {
-				companyPostResponses =
-					companyPostRepository.searchCompanyPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
+		return PageResponse.from(responsePage);
+	}
 
-							return CompanyPostResponse.from(post, isNew, isHot);
-						});
-			}
-		} else if (companies.contains(Company.ETC)) {
-			List<Company> excludeCompanies = new ArrayList<>(Company.MAIN_COMPANIES);
-			companies.stream()
-				.filter(company -> company != Company.ETC)
-				.forEach(excludeCompanies::remove);
+	private List<Field> convertToFields(List<String> fieldNames) {
 
-			if (fields.isEmpty()) {
-				companyPostResponses = companyPostRepository.searchCompanyPostsWithoutFieldsExcludeCompanies(
-						excludeCompanies,
-						keyword,
-						pageRequest)
-					.map(post -> {
-						boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-						boolean isHot = popularPosts.contains(post);
+		return Optional.ofNullable(fieldNames)
+			.orElse(Collections.emptyList())
+			.stream()
+			.map(this::toField)
+			.toList();
+	}
 
-						return CompanyPostResponse.from(post, isNew, isHot);
-					});
-			} else {
-				companyPostResponses = companyPostRepository.searchCompanyPostsWithFieldsExcludeCompanies(
-						fields,
-						excludeCompanies,
-						keyword,
-						pageRequest)
-					.map(post -> {
-						boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-						boolean isHot = popularPosts.contains(post);
+	private Field toField(String fieldName) {
 
-						return CompanyPostResponse.from(post, isNew, isHot);
-					});
-			}
-		} else {
-			if (fields.isEmpty()) {
-				companyPostResponses =
-					companyPostRepository.searchCompanyPostsWithoutFields(companies, keyword, pageRequest)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
+		return Field.of(fieldName)
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + fieldName));
+	}
 
-							return CompanyPostResponse.from(post, isNew, isHot);
-						});
-			} else {
-				companyPostResponses =
-					companyPostRepository.searchCompanyPostsWithFields(fields, companies, keyword, pageRequest)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
+	private List<Company> convertToCompanies(List<String> companyNames) {
 
-							return CompanyPostResponse.from(post, isNew, isHot);
-						});
-			}
-		}
+		return Optional.ofNullable(companyNames)
+			.orElse(Collections.emptyList())
+			.stream()
+			.map(this::toCompany)
+			.toList();
+	}
 
-		return PageResponse.from(companyPostResponses);
+	private Company toCompany(String companyName) {
+
+		return Company.of(companyName)
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 회사가 아닙니다: " + companyName));
+	}
+
+	private PageRequest createPageRequest(CompanyPostSearchRequest request) {
+
+		return PageRequest.of(request.page() - 1, request.size());
+	}
+
+	private String extractKeyword(CompanyPostSearchRequest request) {
+
+		return StringUtils.hasText(request.keyword()) ? request.keyword() : null;
+	}
+
+	private List<Long> findPopularPostIds(LocalDateTime now) {
+		LocalDateTime startDate = DEFAULT_POPULAR_CONDITION.calculateStartDate(now);
+
+		return companyPostRepository.findPopularPosts(startDate)
+			.stream()
+			.map(CompanyPost::getId)
+			.toList();
+	}
+
+	private List<Company> filterExcludedCompanies(List<Company> companies) {
+
+		return Company.MAIN_COMPANIES.stream()
+			.filter(company -> !companies.contains(company))
+			.toList();
+	}
+
+	private CompanyPostResponse toCompanyPostResponse(CompanyPost post, LocalDateTime now, List<Long> popularPostIds) {
+		boolean isNew = isNewPost(post.getPublishedAt(), now);
+		boolean isHot = popularPostIds.contains(post.getId());
+
+		return CompanyPostResponse.from(post, isNew, isHot);
+	}
+
+	private boolean isNewPost(LocalDateTime publishedAt, LocalDateTime now) {
+
+		return publishedAt.isAfter(now.minusDays(NEW_POST_DAYS_THRESHOLD));
 	}
 
 	// TODO: 쿼리 수 줄이기
