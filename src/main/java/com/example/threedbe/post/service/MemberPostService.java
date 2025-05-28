@@ -33,6 +33,7 @@ import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.request.MemberPostUpdateRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
+import com.example.threedbe.post.dto.response.MemberPostEditResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
@@ -236,6 +237,17 @@ public class MemberPostService {
 			.orElse(null);
 
 		return MemberPostDetailResponse.from(memberPost, bookmarkCount, isBookmarked, isMyPost, nextId, prevId);
+	}
+
+	public MemberPostEditResponse findMemberPostForEdit(Member member, Long postId) {
+		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+
+		if (!memberPost.getMember().equals(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
+		}
+
+		return MemberPostEditResponse.from(memberPost);
 	}
 
 	// TODO: QueryDSL로 변경
