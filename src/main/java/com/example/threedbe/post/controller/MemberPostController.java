@@ -92,6 +92,7 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		return ResponseEntity.ok(memberPostDetailResponse);
 	}
 
+	@Override
 	@GetMapping("/{postId}/edit")
 	public ResponseEntity<MemberPostEditResponse> findMemberPostForEdit(
 		@LoginMember Member member,
