@@ -21,6 +21,7 @@ import com.example.threedbe.post.dto.request.MemberPostSaveRequest;
 import com.example.threedbe.post.dto.request.MemberPostSearchRequest;
 import com.example.threedbe.post.dto.request.MemberPostUpdateRequest;
 import com.example.threedbe.post.dto.response.MemberPostDetailResponse;
+import com.example.threedbe.post.dto.response.MemberPostEditResponse;
 import com.example.threedbe.post.dto.response.MemberPostResponse;
 import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
@@ -89,6 +90,17 @@ public class MemberPostController implements MemberPostControllerSwagger {
 		MemberPostDetailResponse memberPostDetailResponse = memberPostService.findMemberPostDetail(member, postId);
 
 		return ResponseEntity.ok(memberPostDetailResponse);
+	}
+
+	@Override
+	@GetMapping("/{postId}/edit")
+	public ResponseEntity<MemberPostEditResponse> findMemberPostForEdit(
+		@LoginMember Member member,
+		@PathVariable("postId") Long postId) {
+
+		MemberPostEditResponse memberPostEditResponse = memberPostService.findMemberPostForEdit(member, postId);
+
+		return ResponseEntity.ok(memberPostEditResponse);
 	}
 
 	@Override

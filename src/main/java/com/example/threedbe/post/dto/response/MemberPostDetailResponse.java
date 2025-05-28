@@ -15,7 +15,7 @@ public record MemberPostDetailResponse(
 	@Schema(description = "제목", example = "FE News 25년 5월 소식을 전해드립니다!")
 	String title,
 
-	@Schema(description = "요약 내용", example = "2025년 5월의 소식에서는 리액트 컴파일러의 RC 단계 도달")
+	@Schema(description = "내용", example = "2025년 5월의 소식에서는 리액트 컴파일러의 RC 단계 도달")
 	String content,
 
 	@Schema(description = "썸네일 이미지 주소", example = "https://d2.naver.com/content/images/2023/07/-----------2023-07-06------4-16-49.png")
