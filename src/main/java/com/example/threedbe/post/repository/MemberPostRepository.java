@@ -13,7 +13,7 @@ import org.springframework.data.repository.query.Param;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
 
-public interface MemberPostRepository extends JpaRepository<MemberPost, Long> {
+public interface MemberPostRepository extends JpaRepository<MemberPost, Long>, MemberPostRepositoryCustom {
 
 	Page<MemberPost> findByMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
 
@@ -84,10 +84,6 @@ public interface MemberPostRepository extends JpaRepository<MemberPost, Long> {
 
 	@Query("SELECT mp.id FROM MemberPost mp WHERE (mp.publishedAt > :publishedAt) ORDER BY mp.publishedAt ASC LIMIT 1")
 	Optional<Long> findPrevId(@Param("publishedAt") LocalDateTime publishedAt);
-
-	@Query("SELECT mp FROM MemberPost mp WHERE mp.publishedAt > :publishedAt " +
-		"ORDER BY (mp.viewCount + SIZE(mp.bookmarks) * 2) DESC LIMIT 10")
-	List<MemberPost> findMemberPostsOrderByPopularity(@Param("publishedAt") LocalDateTime publishedAt);
 
 	Optional<MemberPost> findByIdAndDeletedAtIsNull(Long id);
 

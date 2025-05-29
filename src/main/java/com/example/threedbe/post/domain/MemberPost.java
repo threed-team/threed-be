@@ -72,6 +72,14 @@ public class MemberPost extends Post {
 		this.images.add(image);
 	}
 
+	public boolean isAuthor(Member member) {
+		return this.member.equals(member);
+	}
+
+	public boolean isNotAuthor(Member member) {
+		return !isAuthor(member);
+	}
+
 	private void addSkill(Skill skill) {
 		this.skills.add(new MemberPostSkill(this, skill));
 	}

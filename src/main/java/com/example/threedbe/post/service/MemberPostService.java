@@ -11,10 +11,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import com.example.threedbe.common.dto.ListResponse;
 import com.example.threedbe.common.dto.PageResponse;
@@ -61,20 +60,15 @@ public class MemberPostService {
 	}
 
 	@Transactional
-	public PresignedUrlResponse generateImageUrl(
-		Member member,
-		Long postId,
-		MemberPostImageRequest memberPostImageRequest) {
+	public PresignedUrlResponse generateImageUrl(Member member, Long postId, MemberPostImageRequest request) {
+		MemberPost memberPost = findMemberPostById(postId);
 
-		MemberPost memberPost = memberPostRepository.findById(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
-
-		if (!memberPost.getMember().equals(member)) {
+		if (memberPost.isNotAuthor(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
 		PresignedUrlResponse presignedUrlResponse =
-			s3Service.generatePresignedUrl(generateImageFilePath(postId, memberPostImageRequest));
+			s3Service.generatePresignedUrl(generateImageFilePath(postId, request));
 
 		memberPost.addImage(new MemberPostImage(memberPost, presignedUrlResponse.fileUrl()));
 
@@ -82,17 +76,15 @@ public class MemberPostService {
 	}
 
 	@Transactional
-	public MemberPostSaveResponse save(Member member, Long postId, MemberPostSaveRequest memberPostSaveRequest) {
-		MemberPost memberPost = memberPostRepository.findById(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+	public MemberPostSaveResponse save(Member member, Long postId, MemberPostSaveRequest request) {
+		MemberPost memberPost = findMemberPostById(postId);
 
-		if (!memberPost.getMember().equals(member)) {
+		if (memberPost.isNotAuthor(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
-		Field field = Field.of(memberPostSaveRequest.field())
-			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + memberPostSaveRequest.field()));
-		List<Skill> skills = memberPostSaveRequest.skills()
+		Field field = Field.fromName(request.field());
+		List<Skill> skills = request.skills()
 			.stream()
 			.map(skillName -> skillRepository.findByName(skillName)
 				.orElseGet(() -> skillRepository.save(new Skill(skillName))))
@@ -102,24 +94,18 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("이미 릴리즈된 포스트입니다: " + postId);
 		}
 
-		String title = memberPostSaveRequest.title();
+		String title = request.title();
 		BufferedImage thumbnailImage = thumbnailService.createThumbnailImage(title);
 		String thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, title);
-		memberPost.release(title, memberPostSaveRequest.content(), field, thumbnailUrl, skills);
+		memberPost.release(title, request.content(), field, thumbnailUrl, skills);
 
 		return MemberPostSaveResponse.from(memberPost);
 	}
 
 	// TODO: QueryDSL로 변경
-	public PageResponse<MemberPostResponse> search(MemberPostSearchRequest memberPostSearchRequest) {
-		List<Field> fields = Optional.ofNullable(memberPostSearchRequest.fields())
-			.orElse(Collections.emptyList())
-			.stream()
-			.map(name -> Field.of(name)
-				.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + name)))
-			.toList();
-
-		List<String> skillNames = Optional.ofNullable(memberPostSearchRequest.skills())
+	public PageResponse<MemberPostResponse> search(MemberPostSearchRequest request) {
+		List<Field> fields = Field.fromNames(request.fields());
+		List<String> skillNames = Optional.ofNullable(request.skills())
 			.orElse(Collections.emptyList())
 			.stream()
 			.filter(name -> {
@@ -131,17 +117,16 @@ public class MemberPostService {
 			})
 			.toList();
 
-		PageRequest pageRequest = PageRequest.of(memberPostSearchRequest.page() - 1, memberPostSearchRequest.size());
-		String keyword =
-			StringUtils.hasText(memberPostSearchRequest.keyword()) ? memberPostSearchRequest.keyword() : null;
+		Pageable pageable = request.toPageRequest();
+		String keyword = request.extractKeyword();
 		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
-		List<MemberPost> popularPosts = memberPostRepository.findMemberPostsOrderByPopularity(startDate);
+		List<MemberPost> popularPosts = memberPostRepository.findPopularPosts(startDate);
 		LocalDateTime now = LocalDateTime.now();
 		Page<MemberPostResponse> memberPostResponses;
 		if (skillNames.isEmpty()) {
 			if (fields.isEmpty()) {
 				memberPostResponses =
-					memberPostRepository.searchMemberPostsAll(keyword, pageRequest)
+					memberPostRepository.searchMemberPostsAll(keyword, pageable)
 						.map(post -> {
 							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
@@ -150,7 +135,7 @@ public class MemberPostService {
 						});
 			} else {
 				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithFieldsAllCompanies(fields, keyword, pageRequest)
+					memberPostRepository.searchMemberPostsWithFieldsAllCompanies(fields, keyword, pageable)
 						.map(post -> {
 							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
@@ -169,7 +154,7 @@ public class MemberPostService {
 					memberPostRepository.searchMemberPostsWithoutFieldsExcludeCompanies(
 							targetSkillNames,
 							keyword,
-							pageRequest)
+							pageable)
 						.map(post -> {
 							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
@@ -182,7 +167,7 @@ public class MemberPostService {
 							fields,
 							targetSkillNames,
 							keyword,
-							pageRequest)
+							pageable)
 						.map(post -> {
 							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
@@ -193,7 +178,7 @@ public class MemberPostService {
 		} else {
 			if (fields.isEmpty()) {
 				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithoutFields(skillNames, keyword, pageRequest)
+					memberPostRepository.searchMemberPostsWithoutFields(skillNames, keyword, pageable)
 						.map(post -> {
 							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
@@ -202,7 +187,7 @@ public class MemberPostService {
 						});
 			} else {
 				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithFields(fields, skillNames, keyword, pageRequest)
+					memberPostRepository.searchMemberPostsWithFields(fields, skillNames, keyword, pageable)
 						.map(post -> {
 							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
 							boolean isHot = popularPosts.contains(post);
@@ -218,8 +203,7 @@ public class MemberPostService {
 	// TODO: 쿼리 수 줄이기
 	@Transactional
 	public MemberPostDetailResponse findMemberPostDetail(Member member, Long postId) {
-		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+		MemberPost memberPost = findMemberPostByIdNotDeleted(postId);
 		memberPost.increaseViewCount();
 
 		int bookmarkCount = memberPost.getBookmarkCount();
@@ -250,44 +234,32 @@ public class MemberPostService {
 		return MemberPostEditResponse.from(memberPost);
 	}
 
-	// TODO: QueryDSL로 변경
-	public ListResponse<MemberPostResponse> findPopularMemberPosts(
-		MemberPostPopularRequest memberPostPopularRequest) {
-
-		String conditionName = memberPostPopularRequest.condition();
-		PopularCondition condition = PopularCondition.of(conditionName)
-			.orElseThrow(() -> new ThreedBadRequestException("잘못된 인기 조건입니다: " + conditionName));
+	public ListResponse<MemberPostResponse> findPopularMemberPosts(MemberPostPopularRequest request) {
+		PopularCondition condition = PopularCondition.fromName(request.condition());
 
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime startDate = condition.calculateStartDate(now);
 
-		List<MemberPostResponse> posts = memberPostRepository.findMemberPostsOrderByPopularity(startDate).stream()
-			.map(post -> {
-				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
+		List<MemberPost> popularPosts = memberPostRepository.findPopularPosts(startDate);
 
-				return MemberPostResponse.from(post, isNew, true);
-			})
+		List<MemberPostResponse> posts = popularPosts.stream()
+			.map(post -> toMemberPostResponse(post, now))
 			.toList();
 
 		return ListResponse.from(posts);
 	}
 
 	@Transactional
-	public MemberPostUpdateResponse update(
-		Member member,
-		Long postId,
-		MemberPostUpdateRequest memberPostUpdateRequest) {
-
-		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+	public MemberPostUpdateResponse update(Member member, Long postId, MemberPostUpdateRequest request) {
+		MemberPost memberPost = findMemberPostByIdNotDeleted(postId);
 
 		if (!memberPost.getMember().equals(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
-		Field field = Field.of(memberPostUpdateRequest.field())
-			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + memberPostUpdateRequest.field()));
-		List<Skill> skills = memberPostUpdateRequest.skills()
+		Field field = Field.of(request.field())
+			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + request.field()));
+		List<Skill> skills = request.skills()
 			.stream()
 			.map(skillName -> skillRepository.findByName(skillName)
 				.orElseGet(() -> skillRepository.save(new Skill(skillName))))
@@ -297,7 +269,7 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("릴리즈 전 포스트는 수정할 수 없습니다: " + postId);
 		}
 
-		String newTitle = memberPostUpdateRequest.title();
+		String newTitle = request.title();
 		String thumbnailUrl = memberPost.getThumbnailImageUrl();
 		if (!newTitle.equals(memberPost.getTitle())) {
 			if (thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
@@ -308,17 +280,16 @@ public class MemberPostService {
 			thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, newTitle);
 		}
 
-		memberPost.update(newTitle, memberPostUpdateRequest.content(), field, thumbnailUrl, skills);
+		memberPost.update(newTitle, request.content(), field, thumbnailUrl, skills);
 
 		return MemberPostUpdateResponse.from(memberPost);
 	}
 
 	@Transactional
 	public void delete(Member member, Long postId) {
-		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+		MemberPost memberPost = findMemberPostByIdNotDeleted(postId);
 
-		if (!memberPost.getMember().equals(member)) {
+		if (memberPost.isNotAuthor(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
@@ -329,17 +300,34 @@ public class MemberPostService {
 		memberPostRepository.delete(memberPost);
 	}
 
+	private MemberPost findMemberPostById(Long postId) {
+		return memberPostRepository.findById(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+	}
+
+	private MemberPost findMemberPostByIdNotDeleted(Long postId) {
+		return memberPostRepository.findByIdAndDeletedAtIsNull(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+	}
+
 	private String generateImageFilePath(Long postId, MemberPostImageRequest memberPostImageRequest) {
-		return String.format("posts/%d/images/%s.%s",
+		return String.format(
+			"posts/%d/images/%s.%s",
 			postId,
 			UUID.randomUUID(),
-			getFileExtension(memberPostImageRequest.fileName())
-		);
+			getFileExtension(memberPostImageRequest.fileName()));
 	}
 
 	private String getFileExtension(String fileName) {
 		int lastDotIndex = fileName.lastIndexOf('.');
+
 		return lastDotIndex == -1 ? "" : fileName.substring(lastDotIndex + 1).toLowerCase();
+	}
+
+	private MemberPostResponse toMemberPostResponse(MemberPost post, LocalDateTime now) {
+		boolean isNew = post.isNew(now);
+
+		return MemberPostResponse.from(post, isNew, true);
 	}
 
 }
