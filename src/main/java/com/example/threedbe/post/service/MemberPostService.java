@@ -200,24 +200,19 @@ public class MemberPostService {
 		return PageResponse.from(memberPostResponses);
 	}
 
-	// TODO: 쿼리 수 줄이기
 	@Transactional
 	public MemberPostDetailResponse findMemberPostDetail(Member member, Long postId) {
-		MemberPost memberPost = findMemberPostByIdNotDeleted(postId);
+		MemberPost memberPost = findMemberPostDetailById(postId);
 		memberPost.increaseViewCount();
 
 		int bookmarkCount = memberPost.getBookmarkCount();
-
-		boolean isBookmarked = memberPost.getBookmarks()
-			.stream()
-			.anyMatch(bookmark -> bookmark.getMember().equals(member));
-
-		boolean isMyPost = memberPost.getMember().equals(member);
+		boolean isBookmarked = memberPost.isBookmarkedBy(member);
+		boolean isMyPost = memberPost.isAuthor(member);
 
 		LocalDateTime publishedAt = memberPost.getPublishedAt();
 		Long nextId = memberPostRepository.findNextId(publishedAt)
 			.orElse(null);
-		Long prevId = memberPostRepository.findPrevId(publishedAt)
+		Long prevId = memberPostRepository.findPreviousId(publishedAt)
 			.orElse(null);
 
 		return MemberPostDetailResponse.from(memberPost, bookmarkCount, isBookmarked, isMyPost, nextId, prevId);
@@ -227,7 +222,7 @@ public class MemberPostService {
 		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 
-		if (!memberPost.getMember().equals(member)) {
+		if (memberPost.isNotAuthor(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
@@ -322,6 +317,11 @@ public class MemberPostService {
 		int lastDotIndex = fileName.lastIndexOf('.');
 
 		return lastDotIndex == -1 ? "" : fileName.substring(lastDotIndex + 1).toLowerCase();
+	}
+
+	private MemberPost findMemberPostDetailById(Long postId) {
+		return memberPostRepository.findMemberPostDetailById(postId)
+			.orElseThrow(() -> new ThreedNotFoundException("회사 포스트가 존재하지 않습니다: " + postId));
 	}
 
 	private MemberPostResponse toMemberPostResponse(MemberPost post, LocalDateTime now) {

@@ -1,6 +1,5 @@
 package com.example.threedbe.post.repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -78,12 +77,6 @@ public interface MemberPostRepository extends JpaRepository<MemberPost, Long>, M
 		@Param("keyword") String keyword,
 		Pageable pageable
 	);
-
-	@Query("SELECT mp.id FROM MemberPost mp WHERE (mp.publishedAt < :publishedAt) ORDER BY mp.publishedAt DESC LIMIT 1")
-	Optional<Long> findNextId(@Param("publishedAt") LocalDateTime publishedAt);
-
-	@Query("SELECT mp.id FROM MemberPost mp WHERE (mp.publishedAt > :publishedAt) ORDER BY mp.publishedAt ASC LIMIT 1")
-	Optional<Long> findPrevId(@Param("publishedAt") LocalDateTime publishedAt);
 
 	Optional<MemberPost> findByIdAndDeletedAtIsNull(Long id);
 
