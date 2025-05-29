@@ -15,6 +15,7 @@ import com.example.threedbe.post.domain.Company;
 import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.repository.CompanyPostRepositoryCustom;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -38,24 +39,20 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 		boolean excludeCompanies,
 		Pageable pageable) {
 
-		JPAQuery<CompanyPost> query = queryFactory
-			.selectFrom(companyPost)
-			.where(fieldsIn(fields), companiesFilter(companies, excludeCompanies), keywordContains(keyword))
-			.orderBy(companyPost.publishedAt.desc());
+		BooleanBuilder whereClause = new BooleanBuilder().and(fieldsIn(fields))
+			.and(companiesFilter(companies, excludeCompanies))
+			.and(keywordContains(keyword));
 
-		List<CompanyPost> content = query
+		List<CompanyPost> content = queryFactory.selectFrom(companyPost)
+			.where(whereClause)
+			.orderBy(companyPost.publishedAt.desc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
 
-		JPAQuery<Long> countQuery = queryFactory
-			.select(companyPost.count())
+		JPAQuery<Long> countQuery = queryFactory.select(companyPost.count())
 			.from(companyPost)
-			.where(
-				fieldsIn(fields),
-				companiesFilter(companies, excludeCompanies),
-				keywordContains(keyword)
-			);
+			.where(whereClause);
 
 		return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
 	}
@@ -106,8 +103,7 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 	}
 
 	private BooleanExpression fieldsIn(List<Field> fields) {
-		return fields != null && !fields.isEmpty() ?
-			companyPost.field.in(fields) : null;
+		return fields != null && !fields.isEmpty() ? companyPost.field.in(fields) : null;
 	}
 
 	private BooleanExpression companiesFilter(List<Company> companies, boolean exclude) {
@@ -119,7 +115,6 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 	}
 
 	private BooleanExpression keywordContains(String keyword) {
-
 		return keyword != null ?
 			companyPost.title.containsIgnoreCase(keyword)
 				.or(companyPost.content.containsIgnoreCase(keyword)) : null;
