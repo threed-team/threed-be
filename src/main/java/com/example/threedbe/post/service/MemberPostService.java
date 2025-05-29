@@ -36,7 +36,6 @@ import com.example.threedbe.post.dto.response.MemberPostSaveResponse;
 import com.example.threedbe.post.dto.response.MemberPostUpdateResponse;
 import com.example.threedbe.post.dto.response.PresignedUrlResponse;
 import com.example.threedbe.post.repository.MemberPostRepository;
-import com.example.threedbe.post.repository.SkillRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -46,7 +45,7 @@ import lombok.RequiredArgsConstructor;
 public class MemberPostService {
 
 	private final MemberPostRepository memberPostRepository;
-	private final SkillRepository skillRepository;
+	private final SkillService skillService;
 	private final ThumbnailService thumbnailService;
 	private final S3Service s3Service;
 
@@ -80,20 +79,15 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
-		Field field = Field.fromName(request.field());
-		List<Skill> skills = request.skills()
-			.stream()
-			.map(skillName -> skillRepository.findByName(skillName)
-				.orElseGet(() -> skillRepository.save(new Skill(skillName))))
-			.toList();
-
 		if (memberPost.isNotDraft()) {
-			throw new ThreedBadRequestException("이미 릴리즈된 포스트입니다: " + postId);
+			throw new ThreedBadRequestException("이미 출판된 포스트입니다: " + postId);
 		}
 
 		String title = request.title();
+		Field field = Field.fromName(request.field());
 		BufferedImage thumbnailImage = thumbnailService.createThumbnailImage(title);
 		String thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, title);
+		List<Skill> skills = skillService.findOrCreateSkills(request.skills());
 		memberPost.release(title, request.content(), field, thumbnailUrl, skills);
 
 		return MemberPostSaveResponse.from(memberPost);
@@ -251,11 +245,7 @@ public class MemberPostService {
 
 		Field field = Field.of(request.field())
 			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + request.field()));
-		List<Skill> skills = request.skills()
-			.stream()
-			.map(skillName -> skillRepository.findByName(skillName)
-				.orElseGet(() -> skillRepository.save(new Skill(skillName))))
-			.toList();
+		List<Skill> skills = skillService.findOrCreateSkills(request.skills());
 
 		if (memberPost.isDraft()) {
 			throw new ThreedBadRequestException("릴리즈 전 포스트는 수정할 수 없습니다: " + postId);
