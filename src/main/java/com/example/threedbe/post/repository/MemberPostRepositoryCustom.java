@@ -4,9 +4,22 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
 
 public interface MemberPostRepositoryCustom {
+
+	Page<MemberPost> searchMemberPosts(
+		List<Field> fields,
+		List<String> skillNames,
+		String keyword,
+		boolean excludeSkillNames,
+		Pageable pageable);
+
+	List<Long> findPopularPostIds(LocalDateTime publishedAfter);
 
 	Optional<Long> findNextId(LocalDateTime publishedAt);
 

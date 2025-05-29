@@ -45,7 +45,7 @@ public class CompanyPostService {
 			pageable);
 
 		LocalDateTime now = LocalDateTime.now();
-		List<Long> popularPostIds = findPopularPostIds(now);
+		List<Long> popularPostIds = companyPostRepository.findPopularPostIds(now);
 		Page<CompanyPostResponse> responsePage =
 			resultPage.map(post -> toCompanyPostResponse(post, now, popularPostIds));
 
@@ -82,15 +82,6 @@ public class CompanyPostService {
 			.toList();
 
 		return ListResponse.from(responses);
-	}
-
-	private List<Long> findPopularPostIds(LocalDateTime now) {
-		LocalDateTime startDate = PopularCondition.DEFAULT.calculateStartDate(now);
-
-		return companyPostRepository.findPopularPosts(startDate)
-			.stream()
-			.map(CompanyPost::getId)
-			.toList();
 	}
 
 	private CompanyPostResponse toCompanyPostResponse(CompanyPost post, LocalDateTime now, List<Long> popularPostIds) {

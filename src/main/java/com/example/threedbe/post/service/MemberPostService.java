@@ -1,13 +1,8 @@
 package com.example.threedbe.post.service;
 
-import static com.example.threedbe.post.domain.Skill.*;
-
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -93,102 +88,25 @@ public class MemberPostService {
 		return MemberPostSaveResponse.from(memberPost);
 	}
 
-	// TODO: QueryDSL로 변경
 	public PageResponse<MemberPostResponse> search(MemberPostSearchRequest request) {
 		List<Field> fields = Field.fromNames(request.fields());
-		List<String> skillNames = Optional.ofNullable(request.skills())
-			.orElse(Collections.emptyList())
-			.stream()
-			.filter(name -> {
-				if (MAIN_SKILLS.contains(name)) {
-					return true;
-				}
-
-				throw new ThreedNotFoundException("등록된 기술이 아닙니다: " + name);
-			})
-			.toList();
-
-		Pageable pageable = request.toPageRequest();
+		List<String> skillNames = request.skills();
+		boolean excludeSkillNames = skillNames != null && skillNames.contains(Skill.ETC);
 		String keyword = request.extractKeyword();
-		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
-		List<MemberPost> popularPosts = memberPostRepository.findPopularPosts(startDate);
+		Pageable pageable = request.toPageRequest();
+		Page<MemberPost> resultPage = memberPostRepository.searchMemberPosts(
+			fields,
+			excludeSkillNames ? Skill.filterExcludedSkillNames(skillNames) : skillNames,
+			keyword,
+			excludeSkillNames,
+			pageable);
+
 		LocalDateTime now = LocalDateTime.now();
-		Page<MemberPostResponse> memberPostResponses;
-		if (skillNames.isEmpty()) {
-			if (fields.isEmpty()) {
-				memberPostResponses =
-					memberPostRepository.searchMemberPostsAll(keyword, pageable)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
+		List<Long> popularPostIds = memberPostRepository.findPopularPostIds(now);
+		Page<MemberPostResponse> responsePage =
+			resultPage.map(post -> toMemberPostResponse(post, now, popularPostIds));
 
-							return MemberPostResponse.from(post, isNew, isHot);
-						});
-			} else {
-				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithFieldsAllCompanies(fields, keyword, pageable)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
-
-							return MemberPostResponse.from(post, isNew, isHot);
-						});
-			}
-		} else if (skillNames.contains(Skill.ETC)) {
-			List<String> targetSkillNames = new ArrayList<>(MAIN_SKILLS);
-			skillNames.stream()
-				.filter(skillName -> !skillName.equals(Skill.ETC))
-				.forEach(targetSkillNames::remove);
-
-			if (fields.isEmpty()) {
-				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithoutFieldsExcludeCompanies(
-							targetSkillNames,
-							keyword,
-							pageable)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
-
-							return MemberPostResponse.from(post, isNew, isHot);
-						});
-			} else {
-				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithFieldsExcludeCompanies(
-							fields,
-							targetSkillNames,
-							keyword,
-							pageable)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
-
-							return MemberPostResponse.from(post, isNew, isHot);
-						});
-			}
-		} else {
-			if (fields.isEmpty()) {
-				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithoutFields(skillNames, keyword, pageable)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
-
-							return MemberPostResponse.from(post, isNew, isHot);
-						});
-			} else {
-				memberPostResponses =
-					memberPostRepository.searchMemberPostsWithFields(fields, skillNames, keyword, pageable)
-						.map(post -> {
-							boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-							boolean isHot = popularPosts.contains(post);
-
-							return MemberPostResponse.from(post, isNew, isHot);
-						});
-			}
-		}
-
-		return PageResponse.from(memberPostResponses);
+		return PageResponse.from(responsePage);
 	}
 
 	@Transactional
@@ -280,6 +198,13 @@ public class MemberPostService {
 		}
 
 		memberPostRepository.delete(memberPost);
+	}
+
+	private MemberPostResponse toMemberPostResponse(MemberPost post, LocalDateTime now, List<Long> popularPostIds) {
+		boolean isNew = post.isNew(now);
+		boolean isHot = popularPostIds.contains(post.getId());
+
+		return MemberPostResponse.from(post, isNew, isHot);
 	}
 
 	private MemberPost findMemberPostById(Long postId) {

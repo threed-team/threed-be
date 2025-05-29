@@ -58,6 +58,16 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 	}
 
 	@Override
+	public List<Long> findPopularPostIds(LocalDateTime publishedAfter) {
+		return queryFactory.select(companyPost.id)
+			.from(companyPost)
+			.where(companyPost.publishedAt.after(publishedAfter))
+			.orderBy(companyPost.viewCount.add(companyPost.bookmarks.size().multiply(2L)).desc())
+			.limit(10)
+			.fetch();
+	}
+
+	@Override
 	public Optional<Long> findNextId(LocalDateTime publishedAt) {
 		return Optional.ofNullable(
 			queryFactory

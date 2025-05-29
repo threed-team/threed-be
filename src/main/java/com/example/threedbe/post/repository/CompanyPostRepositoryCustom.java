@@ -17,8 +17,9 @@ public interface CompanyPostRepositoryCustom {
 		List<Company> companies,
 		String keyword,
 		boolean excludeCompanies,
-		Pageable pageable
-	);
+		Pageable pageable);
+
+	List<Long> findPopularPostIds(LocalDateTime publishedAfter);
 
 	Optional<Long> findNextId(LocalDateTime publishedAt);
 

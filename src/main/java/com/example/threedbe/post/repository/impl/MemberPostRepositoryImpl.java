@@ -8,13 +8,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
+import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
 import com.example.threedbe.post.repository.MemberPostRepositoryCustom;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import jakarta.persistence.EntityManager;
@@ -26,6 +33,45 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 
 	public MemberPostRepositoryImpl(EntityManager em) {
 		this.queryFactory = new JPAQueryFactory(em);
+	}
+
+	@Override
+	public Page<MemberPost> searchMemberPosts(
+		List<Field> fields,
+		List<String> skillNames,
+		String keyword,
+		boolean excludeSkillNames,
+		Pageable pageable) {
+
+		BooleanBuilder whereClause = new BooleanBuilder().and(fieldsIn(fields))
+			.and(skillNamesFilter(skillNames, excludeSkillNames))
+			.and(keywordContains(keyword));
+
+		List<MemberPost> content = queryFactory.selectFrom(memberPost)
+			.leftJoin(memberPost.member).fetchJoin()
+			.leftJoin(memberPost.skills, memberPostSkill).fetchJoin()
+			.leftJoin(memberPostSkill.skill, skill).fetchJoin()
+			.where(whereClause)
+			.orderBy(memberPost.publishedAt.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		JPAQuery<Long> countQuery = queryFactory.select(memberPost.count())
+			.from(memberPost)
+			.where(whereClause);
+
+		return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+	}
+
+	@Override
+	public List<Long> findPopularPostIds(LocalDateTime publishedAfter) {
+		return queryFactory.select(memberPost.id)
+			.from(memberPost)
+			.where(memberPost.publishedAt.after(publishedAfter))
+			.orderBy(memberPost.viewCount.add(memberPost.bookmarks.size().multiply(2L)).desc())
+			.limit(10)
+			.fetch();
 	}
 
 	@Override
@@ -78,6 +124,29 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 			.fetchOne();
 
 		return Optional.ofNullable(post);
+	}
+
+	private BooleanExpression fieldsIn(List<Field> fields) {
+		return fields != null && !fields.isEmpty() ? memberPost.field.in(fields) : null;
+	}
+
+	private BooleanExpression skillNamesFilter(List<String> skillNames, boolean exclude) {
+		if (skillNames == null || skillNames.isEmpty()) {
+			return null;
+		}
+
+		JPQLQuery<Long> subQuery = JPAExpressions.select(memberPostSkill.memberPost.id)
+			.from(memberPostSkill)
+			.join(memberPostSkill.skill, skill)
+			.where(skill.name.in(skillNames));
+
+		return exclude ? memberPost.id.notIn(subQuery) : memberPost.id.in(subQuery);
+	}
+
+	private BooleanExpression keywordContains(String keyword) {
+		return keyword != null ?
+			memberPost.title.containsIgnoreCase(keyword)
+				.or(memberPost.content.containsIgnoreCase(keyword)) : null;
 	}
 
 }

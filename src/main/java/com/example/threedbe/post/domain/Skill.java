@@ -18,9 +18,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Skill {
 
-	public static final List<String> MAIN_SKILLS =
-		List.of("JAVA", "SPRING", "NEXT.JS", "REACT", "JAVASCRIPT", "NODE.JS", "TYPESCRIPT", Skill.ETC);
-
 	public static final String ETC = "기타";
 
 	@Id
@@ -32,6 +29,15 @@ public class Skill {
 
 	public Skill(String name) {
 		this.name = name;
+	}
+
+	public static List<String> filterExcludedSkillNames(List<String> skillNames) {
+		List<String> mainSkillNames =
+			List.of("JAVA", "SPRING", "NEXT.JS", "REACT", "JAVASCRIPT", "NODE.JS", "TYPESCRIPT");
+
+		return mainSkillNames.stream()
+			.filter(skillName -> !skillNames.contains(skillName))
+			.toList();
 	}
 
 }
