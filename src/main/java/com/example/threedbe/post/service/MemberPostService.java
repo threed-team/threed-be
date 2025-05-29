@@ -128,8 +128,7 @@ public class MemberPostService {
 	}
 
 	public MemberPostEditResponse findMemberPostForEdit(Member member, Long postId) {
-		MemberPost memberPost = memberPostRepository.findByIdAndDeletedAtIsNull(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
+		MemberPost memberPost = findMemberPostDetailById(postId);
 
 		if (memberPost.isNotAuthor(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
