@@ -68,8 +68,8 @@ public class MemberPost extends Post {
 		skills.forEach(this::addSkillIfNotExists);
 	}
 
-	public void addImage(MemberPostImage image) {
-		this.images.add(image);
+	public void addImage(String imageUrl) {
+		this.images.add(new MemberPostImage(this, imageUrl));
 	}
 
 	public boolean isAuthor(Member member) {

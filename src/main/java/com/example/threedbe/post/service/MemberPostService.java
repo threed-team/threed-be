@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +22,6 @@ import com.example.threedbe.common.service.S3Service;
 import com.example.threedbe.member.domain.Member;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
-import com.example.threedbe.post.domain.MemberPostImage;
 import com.example.threedbe.post.domain.PopularCondition;
 import com.example.threedbe.post.domain.Skill;
 import com.example.threedbe.post.dto.request.MemberPostImageRequest;
@@ -67,10 +65,9 @@ public class MemberPostService {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
-		PresignedUrlResponse presignedUrlResponse =
-			s3Service.generatePresignedUrl(generateImageFilePath(postId, request));
+		PresignedUrlResponse presignedUrlResponse = s3Service.generatePresignedUrl(postId, request.fileName());
 
-		memberPost.addImage(new MemberPostImage(memberPost, presignedUrlResponse.fileUrl()));
+		memberPost.addImage(presignedUrlResponse.fileUrl());
 
 		return presignedUrlResponse;
 	}
@@ -303,20 +300,6 @@ public class MemberPostService {
 	private MemberPost findMemberPostByIdNotDeleted(Long postId) {
 		return memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
-	}
-
-	private String generateImageFilePath(Long postId, MemberPostImageRequest memberPostImageRequest) {
-		return String.format(
-			"posts/%d/images/%s.%s",
-			postId,
-			UUID.randomUUID(),
-			getFileExtension(memberPostImageRequest.fileName()));
-	}
-
-	private String getFileExtension(String fileName) {
-		int lastDotIndex = fileName.lastIndexOf('.');
-
-		return lastDotIndex == -1 ? "" : fileName.substring(lastDotIndex + 1).toLowerCase();
 	}
 
 	private MemberPost findMemberPostDetailById(Long postId) {
