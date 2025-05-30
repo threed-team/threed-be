@@ -12,6 +12,8 @@ import com.example.threedbe.post.domain.MemberPost;
 
 public interface MemberPostRepositoryCustom {
 
+	Optional<MemberPost> findMemberPostById(Long postId);
+
 	Page<MemberPost> searchMemberPosts(
 		List<Field> fields,
 		List<String> skillNames,

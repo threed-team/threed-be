@@ -39,7 +39,8 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 		boolean excludeCompanies,
 		Pageable pageable) {
 
-		BooleanBuilder whereClause = new BooleanBuilder().and(fieldsIn(fields))
+		BooleanBuilder whereClause = new BooleanBuilder().and(companyPost.publishedAt.isNotNull())
+			.and(fieldsIn(fields))
 			.and(companiesFilter(companies, excludeCompanies))
 			.and(keywordContains(keyword));
 
@@ -69,26 +70,26 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 
 	@Override
 	public Optional<Long> findNextId(LocalDateTime publishedAt) {
-		return Optional.ofNullable(
-			queryFactory
-				.select(companyPost.id)
-				.from(companyPost)
-				.where(companyPost.publishedAt.lt(publishedAt))
-				.orderBy(companyPost.publishedAt.desc())
-				.fetchFirst()
-		);
+		Long postId = queryFactory
+			.select(companyPost.id)
+			.from(companyPost)
+			.where(companyPost.publishedAt.lt(publishedAt))
+			.orderBy(companyPost.publishedAt.desc())
+			.fetchFirst();
+
+		return Optional.ofNullable(postId);
 	}
 
 	@Override
 	public Optional<Long> findPreviousId(LocalDateTime publishedAt) {
-		return Optional.ofNullable(
-			queryFactory
-				.select(companyPost.id)
-				.from(companyPost)
-				.where(companyPost.publishedAt.gt(publishedAt))
-				.orderBy(companyPost.publishedAt.asc())
-				.fetchFirst()
-		);
+		Long postId = queryFactory
+			.select(companyPost.id)
+			.from(companyPost)
+			.where(companyPost.publishedAt.gt(publishedAt))
+			.orderBy(companyPost.publishedAt.asc())
+			.fetchFirst();
+
+		return Optional.ofNullable(postId);
 	}
 
 	@Override
@@ -106,7 +107,7 @@ public class CompanyPostRepositoryImpl implements CompanyPostRepositoryCustom {
 		CompanyPost post = queryFactory
 			.selectFrom(companyPost)
 			.leftJoin(companyPost.bookmarks).fetchJoin()
-			.where(companyPost.id.eq(postId))
+			.where(companyPost.id.eq(postId), companyPost.publishedAt.isNotNull())
 			.fetchOne();
 
 		return Optional.ofNullable(post);

@@ -199,7 +199,7 @@ public class MemberPostService {
 	}
 
 	private MemberPost findMemberPostById(Long postId) {
-		return memberPostRepository.findById(postId)
+		return memberPostRepository.findMemberPostById(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 	}
 

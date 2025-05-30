@@ -36,6 +36,15 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 	}
 
 	@Override
+	public Optional<MemberPost> findMemberPostById(Long postId) {
+		MemberPost post = queryFactory.selectFrom(memberPost)
+			.where(memberPost.id.eq(postId))
+			.fetchFirst();
+
+		return Optional.ofNullable(post);
+	}
+
+	@Override
 	public Page<MemberPost> searchMemberPosts(
 		List<Field> fields,
 		List<String> skillNames,
@@ -43,7 +52,8 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 		boolean excludeSkillNames,
 		Pageable pageable) {
 
-		BooleanBuilder whereClause = new BooleanBuilder().and(fieldsIn(fields))
+		BooleanBuilder whereClause = new BooleanBuilder().and(memberPost.publishedAt.isNotNull())
+			.and(fieldsIn(fields))
 			.and(skillNamesFilter(skillNames, excludeSkillNames))
 			.and(keywordContains(keyword));
 
@@ -76,24 +86,24 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 
 	@Override
 	public Optional<Long> findNextId(LocalDateTime publishedAt) {
-		return Optional.ofNullable(
-			queryFactory.select(memberPost.id)
-				.from(memberPost)
-				.where(memberPost.publishedAt.lt(publishedAt))
-				.orderBy(memberPost.publishedAt.desc())
-				.fetchFirst()
-		);
+		Long postId = queryFactory.select(memberPost.id)
+			.from(memberPost)
+			.where(memberPost.publishedAt.lt(publishedAt))
+			.orderBy(memberPost.publishedAt.desc())
+			.fetchFirst();
+
+		return Optional.ofNullable(postId);
 	}
 
 	@Override
 	public Optional<Long> findPreviousId(LocalDateTime publishedAt) {
-		return Optional.ofNullable(
-			queryFactory.select(memberPost.id)
-				.from(memberPost)
-				.where(memberPost.publishedAt.gt(publishedAt))
-				.orderBy(memberPost.publishedAt.asc())
-				.fetchFirst()
-		);
+		Long postId = queryFactory.select(memberPost.id)
+			.from(memberPost)
+			.where(memberPost.publishedAt.gt(publishedAt))
+			.orderBy(memberPost.publishedAt.asc())
+			.fetchFirst();
+
+		return Optional.ofNullable(postId);
 	}
 
 	@Override
@@ -120,7 +130,7 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 		MemberPost post = queryFactory.selectFrom(memberPost)
 			.leftJoin(memberPost.skills, memberPostSkill).fetchJoin()
 			.leftJoin(memberPostSkill.skill, skill).fetchJoin()
-			.where(memberPost.id.eq(postId))
+			.where(memberPost.id.eq(postId), memberPost.publishedAt.isNotNull())
 			.fetchOne();
 
 		return Optional.ofNullable(post);
