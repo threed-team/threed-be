@@ -4,10 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
-import org.hibernate.annotations.Filter;
-import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.SQLDelete;
 
 import com.example.threedbe.bookmark.domain.Bookmark;
@@ -35,8 +32,6 @@ import lombok.NoArgsConstructor;
 @Table(name = "posts")
 @Entity
 @Getter
-@Filter(name = "publishedPostFilter", condition = "published_at IS NOT NULL")
-@FilterDef(name = "publishedPostFilter")
 @SQLDelete(sql = "UPDATE posts SET updated_at = NOW() WHERE id = ?")
 @Inheritance(strategy = InheritanceType.JOINED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
