@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.example.threedbe.post.domain.Post;
 
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, Long>, PostRepositoryCustom {
 
 	// TODO: QueryDSL로 변경
 	@Query("SELECT DISTINCT p FROM Post p JOIN p.bookmarks b " +

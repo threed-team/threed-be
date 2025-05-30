@@ -24,6 +24,7 @@ import com.example.threedbe.post.domain.Post;
 import com.example.threedbe.post.repository.CompanyPostRepository;
 import com.example.threedbe.post.repository.MemberPostRepository;
 import com.example.threedbe.post.repository.PostRepository;
+import com.example.threedbe.post.service.PostService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,30 +34,28 @@ import lombok.RequiredArgsConstructor;
 public class BookmarkService {
 
 	private final BookmarkRepository bookmarkRepository;
+	private final PostService postService;
 	private final PostRepository postRepository;
 	private final CompanyPostRepository companyPostRepository;
 	private final MemberPostRepository memberPostRepository;
 
 	@Transactional
 	public void createBookmark(Member member, Long postId) {
-		Post post = postRepository.findById(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("존재하지 않는 포스트입니다."));
+		Post post = postService.findById(postId);
 
-		boolean isAlreadyBookmarked = bookmarkRepository.existsByMemberAndPost(member, post);
-		if (isAlreadyBookmarked) {
-			throw new ThreedConflictException("이미 북마크한 포스트입니다.");
-		}
+		bookmarkRepository.findFirstByMemberAndPost(member, post)
+			.ifPresent(bookmark -> {
+				throw new ThreedConflictException("이미 북마크한 포스트입니다.");
+			});
 
 		member.addBookmark(post);
 	}
 
 	@Transactional
 	public void deleteBookmark(Member member, Long postId) {
-		Post post = postRepository.findById(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("존재하지 않는 포스트입니다."));
+		Post post = postService.findById(postId);
 
-		// TODO: LIMIT 1 걸기
-		Bookmark bookmark = bookmarkRepository.findByMemberAndPost(member, post)
+		Bookmark bookmark = bookmarkRepository.findFirstByMemberAndPost(member, post)
 			.orElseThrow(() -> new ThreedNotFoundException("북마크하지 않은 포스트입니다."));
 
 		member.removeBookmark(bookmark);
