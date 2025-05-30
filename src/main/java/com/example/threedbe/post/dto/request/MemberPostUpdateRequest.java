@@ -1,6 +1,6 @@
 package com.example.threedbe.post.dto.request;
 
-import java.util.List;
+import java.util.Set;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -20,7 +20,7 @@ public record MemberPostUpdateRequest(
 	String field,
 
 	@Schema(description = "기술들", example = "[\"JAVASCRIPT\", \"REACT\"]")
-	List<String> skills
+	Set<String> skills
 
 ) {
 }

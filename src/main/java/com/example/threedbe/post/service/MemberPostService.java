@@ -3,6 +3,7 @@ package com.example.threedbe.post.service;
 import java.awt.image.BufferedImage;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -83,7 +84,7 @@ public class MemberPostService {
 		BufferedImage thumbnailImage = thumbnailService.createThumbnailImage(title);
 		String thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, title);
 		List<Skill> skills = skillService.findOrCreateSkills(request.skills());
-		memberPost.release(title, request.content(), field, thumbnailUrl, skills);
+		memberPost.publish(title, request.content(), field, thumbnailUrl, skills);
 
 		return MemberPostSaveResponse.from(memberPost);
 	}
@@ -154,31 +155,29 @@ public class MemberPostService {
 
 	@Transactional
 	public MemberPostUpdateResponse update(Member member, Long postId, MemberPostUpdateRequest request) {
-		MemberPost memberPost = findMemberPostByIdNotDeleted(postId);
+		MemberPost memberPost = findMemberPostDetailById(postId);
 
-		if (!memberPost.getMember().equals(member)) {
+		if (memberPost.isNotAuthor(member)) {
 			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
 		}
 
-		Field field = Field.of(request.field())
-			.orElseThrow(() -> new ThreedNotFoundException("등록된 분야가 아닙니다: " + request.field()));
-		List<Skill> skills = skillService.findOrCreateSkills(request.skills());
-
 		if (memberPost.isDraft()) {
-			throw new ThreedBadRequestException("릴리즈 전 포스트는 수정할 수 없습니다: " + postId);
+			throw new ThreedBadRequestException("출판 전 포스트는 수정할 수 없습니다: " + postId);
 		}
 
 		String newTitle = request.title();
+		Field field = Field.fromName(request.field());
 		String thumbnailUrl = memberPost.getThumbnailImageUrl();
-		if (!newTitle.equals(memberPost.getTitle())) {
-			if (thumbnailUrl != null && !thumbnailUrl.isEmpty()) {
-				s3Service.deleteThumbnail(thumbnailUrl);
-			}
-
+		if (memberPost.isTitleChanged(newTitle)) {
+			s3Service.deleteThumbnail(thumbnailUrl);
 			BufferedImage thumbnailImage = thumbnailService.createThumbnailImage(newTitle);
 			thumbnailUrl = s3Service.uploadThumbnailImage(thumbnailImage, newTitle);
 		}
-
+		Set<String> currentSkillNames = memberPost.getSkillNames();
+		Set<String> requestSkillNames = request.skills();
+		List<Skill> skills = currentSkillNames.equals(requestSkillNames)
+			? memberPost.getExistingSkills()
+			: skillService.findOrCreateSkills(requestSkillNames);
 		memberPost.update(newTitle, request.content(), field, thumbnailUrl, skills);
 
 		return MemberPostUpdateResponse.from(memberPost);
