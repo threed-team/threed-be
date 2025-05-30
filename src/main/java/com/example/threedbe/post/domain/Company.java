@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.threedbe.common.exception.ThreedNotFoundException;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -36,8 +38,7 @@ public enum Company {
 	public static List<Company> filterExcludedCompanies(List<Company> companies) {
 		List<Company> mainCompanies = List.of(NAVER, KAKAO, DEVOCEAN, TOSS, MY_REAL_TRIP, LINE, DAANGN);
 
-		return mainCompanies
-			.stream()
+		return mainCompanies.stream()
 			.filter(company -> !companies.contains(company))
 			.toList();
 	}
@@ -49,8 +50,7 @@ public enum Company {
 	}
 
 	public static Company fromName(String name) {
-		return of(name)
-			.orElseThrow(() -> new IllegalArgumentException("등록된 회사가 아닙니다: " + name));
+		return of(name).orElseThrow(() -> new ThreedNotFoundException("등록된 회사가 아닙니다: " + name));
 	}
 
 	public static List<Company> fromNames(List<String> names) {

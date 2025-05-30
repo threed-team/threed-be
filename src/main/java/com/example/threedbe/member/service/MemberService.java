@@ -85,19 +85,25 @@ public class MemberService {
 
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
-		List<MemberPost> popularPosts = memberPostRepository.findMemberPostsOrderByPopularity(startDate);
+		List<MemberPost> popularPosts = memberPostRepository.findPopularPosts(startDate);
 
 		PageRequest pageRequest = PageRequest.of(authoredPostRequest.page() - 1, authoredPostRequest.size());
 		Page<AuthoredPostResponse> authoredPosts = memberPostRepository.findByMemberIdOrderByCreatedAtDesc(
 				member.getId(),
 				pageRequest)
-			.map(post -> {
-				boolean isNew = post.getPublishedAt().isAfter(now.minusDays(7));
-				boolean isHot = popularPosts.contains(post);
-
-				return AuthoredPostResponse.from(post, isNew, isHot);
-			});
+			.map(post -> toAuthoredPostResponse(post, now, popularPosts));
 
 		return PageResponse.from(authoredPosts);
+	}
+
+	private AuthoredPostResponse toAuthoredPostResponse(
+		MemberPost post,
+		LocalDateTime now,
+		List<MemberPost> popularPosts) {
+
+		boolean isNew = post.isNew(now);
+		boolean isHot = popularPosts.contains(post);
+
+		return AuthoredPostResponse.from(post, isNew, isHot);
 	}
 }

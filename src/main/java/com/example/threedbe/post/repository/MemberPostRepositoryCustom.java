@@ -7,16 +7,16 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.example.threedbe.post.domain.Company;
-import com.example.threedbe.post.domain.CompanyPost;
 import com.example.threedbe.post.domain.Field;
+import com.example.threedbe.post.domain.MemberPost;
 
-public interface CompanyPostRepositoryCustom {
-	Page<CompanyPost> searchCompanyPosts(
+public interface MemberPostRepositoryCustom {
+
+	Page<MemberPost> searchMemberPosts(
 		List<Field> fields,
-		List<Company> companies,
+		List<String> skillNames,
 		String keyword,
-		boolean excludeCompanies,
+		boolean excludeSkillNames,
 		Pageable pageable);
 
 	List<Long> findPopularPostIds(LocalDateTime publishedAfter);
@@ -25,8 +25,8 @@ public interface CompanyPostRepositoryCustom {
 
 	Optional<Long> findPreviousId(LocalDateTime publishedAt);
 
-	List<CompanyPost> findPopularPosts(LocalDateTime publishedAfter);
+	List<MemberPost> findPopularPosts(LocalDateTime publishedAfter);
 
-	Optional<CompanyPost> findCompanyPostDetailById(Long postId);
+	Optional<MemberPost> findMemberPostDetailById(Long postId);
 
 }

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -66,7 +67,7 @@ public abstract class Post extends BaseEntity {
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Bookmark> bookmarks;
 
-	protected LocalDateTime publishedAt;
+	private LocalDateTime publishedAt;
 
 	public void increaseViewCount() {
 		this.viewCount++;
@@ -83,6 +84,10 @@ public abstract class Post extends BaseEntity {
 
 	public boolean isNew(LocalDateTime now) {
 		return publishedAt.isAfter(now.minusDays(NEW_POST_DAYS_THRESHOLD));
+	}
+
+	protected void markAsPublished() {
+		this.publishedAt = LocalDateTime.now();
 	}
 
 	protected void update(String title, String content, String thumbnailImageUrl, Field field) {

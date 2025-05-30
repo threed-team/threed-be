@@ -64,11 +64,11 @@ public interface MemberPostControllerSwagger {
 		MemberPostImageRequest memberPostImageRequest);
 
 	@Operation(
-		summary = "회원 포스트 생성(릴리즈)",
+		summary = "회원 포스트 생성(퍼블리싱)",
 		responses = {
 			@ApiResponse(
 				responseCode = "200",
-				description = "회원 포스트 생성(릴리즈) 성공",
+				description = "회원 포스트 생성(퍼블리싱) 성공",
 				content = @Content(schema = @Schema(implementation = MemberPostSaveResponse.class)))
 		})
 	@SwaggerErrorCode400

@@ -7,6 +7,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
@@ -81,7 +82,8 @@ public class S3Service {
 		}
 	}
 
-	public PresignedUrlResponse generatePresignedUrl(String filePath) {
+	public PresignedUrlResponse generatePresignedUrl(Long postId, String fileName) {
+		String filePath = generateImageFilePath(postId, fileName);
 		PutObjectPresignRequest presignRequest = buildPresignedRequest(filePath);
 		String presignedUrl = s3Presigner.presignPutObject(presignRequest).url().toString();
 		String fileUrl = createFileUrl(filePath);
@@ -98,7 +100,6 @@ public class S3Service {
 	}
 
 	private String extractKeyFromUrl(String url) {
-
 		return url.substring(cdnUrl.length() + 1);
 	}
 
@@ -134,6 +135,20 @@ public class S3Service {
 			.putObjectRequest(putObjectRequest -> putObjectRequest.bucket(bucketName)
 				.key(filePath))
 			.build();
+	}
+
+	private String generateImageFilePath(Long postId, String fileName) {
+		return String.format(
+			"posts/%d/images/%s.%s",
+			postId,
+			UUID.randomUUID(),
+			getFileExtension(fileName));
+	}
+
+	private String getFileExtension(String fileName) {
+		int lastDotIndex = fileName.lastIndexOf('.');
+
+		return lastDotIndex == -1 ? "" : fileName.substring(lastDotIndex + 1).toLowerCase();
 	}
 
 }

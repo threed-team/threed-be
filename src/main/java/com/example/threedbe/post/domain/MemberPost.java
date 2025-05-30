@@ -2,6 +2,8 @@ package com.example.threedbe.post.domain;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.Filter;
 import org.hibernate.annotations.FilterDef;
@@ -47,18 +49,22 @@ public class MemberPost extends Post {
 		this.member = member;
 	}
 
-	public boolean isDraft() {
-		return super.publishedAt == null;
+	public boolean isNotPublished() {
+		return getPublishedAt() == null;
 	}
 
-	public boolean isNotDraft() {
-		return !isDraft();
+	public boolean isPublished() {
+		return !isNotPublished();
 	}
 
-	public void release(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
+	public boolean isTitleChanged(String newTitle) {
+		return !getTitle().equals(newTitle);
+	}
+
+	public void publish(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
 		super.update(title, content, thumbnailUrl, field);
 		skills.forEach(this::addSkill);
-		super.publishedAt = LocalDateTime.now();
+		markAsPublished();
 	}
 
 	public void update(String title, String content, Field field, String thumbnailUrl, List<Skill> skills) {
@@ -68,8 +74,28 @@ public class MemberPost extends Post {
 		skills.forEach(this::addSkillIfNotExists);
 	}
 
-	public void addImage(MemberPostImage image) {
-		this.images.add(image);
+	public void addImage(String imageUrl) {
+		this.images.add(new MemberPostImage(this, imageUrl));
+	}
+
+	public boolean isAuthor(Member member) {
+		return this.member.equals(member);
+	}
+
+	public boolean isNotAuthor(Member member) {
+		return !isAuthor(member);
+	}
+
+	public Set<String> getSkillNames() {
+		return this.skills.stream()
+			.map(memberPostSkill -> memberPostSkill.getSkill().getName())
+			.collect(Collectors.toSet());
+	}
+
+	public List<Skill> getExistingSkills() {
+		return this.skills.stream()
+			.map(MemberPostSkill::getSkill)
+			.toList();
 	}
 
 	private void addSkill(Skill skill) {
