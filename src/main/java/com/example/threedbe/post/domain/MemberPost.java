@@ -49,12 +49,12 @@ public class MemberPost extends Post {
 		this.member = member;
 	}
 
-	public boolean isDraft() {
+	public boolean isNotPublished() {
 		return getPublishedAt() == null;
 	}
 
-	public boolean isNotDraft() {
-		return !isDraft();
+	public boolean isPublished() {
+		return !isNotPublished();
 	}
 
 	public boolean isTitleChanged(String newTitle) {

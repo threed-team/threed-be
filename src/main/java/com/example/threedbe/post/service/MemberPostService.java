@@ -55,13 +55,9 @@ public class MemberPostService {
 	@Transactional
 	public PresignedUrlResponse generateImageUrl(Member member, Long postId, MemberPostImageRequest request) {
 		MemberPost memberPost = findMemberPostById(postId);
-
-		if (memberPost.isNotAuthor(member)) {
-			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
-		}
+		validateAuthor(memberPost, member);
 
 		PresignedUrlResponse presignedUrlResponse = s3Service.generatePresignedUrl(postId, request.fileName());
-
 		memberPost.addImage(presignedUrlResponse.fileUrl());
 
 		return presignedUrlResponse;
@@ -70,14 +66,8 @@ public class MemberPostService {
 	@Transactional
 	public MemberPostSaveResponse save(Member member, Long postId, MemberPostSaveRequest request) {
 		MemberPost memberPost = findMemberPostById(postId);
-
-		if (memberPost.isNotAuthor(member)) {
-			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
-		}
-
-		if (memberPost.isNotDraft()) {
-			throw new ThreedBadRequestException("이미 출판된 포스트입니다: " + postId);
-		}
+		validateAuthor(memberPost, member);
+		validateNotPublished(memberPost);
 
 		String title = request.title();
 		Field field = Field.fromName(request.field());
@@ -130,10 +120,7 @@ public class MemberPostService {
 
 	public MemberPostEditResponse findMemberPostForEdit(Member member, Long postId) {
 		MemberPost memberPost = findMemberPostDetailById(postId);
-
-		if (memberPost.isNotAuthor(member)) {
-			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
-		}
+		validateAuthor(memberPost, member);
 
 		return MemberPostEditResponse.from(memberPost);
 	}
@@ -156,14 +143,8 @@ public class MemberPostService {
 	@Transactional
 	public MemberPostUpdateResponse update(Member member, Long postId, MemberPostUpdateRequest request) {
 		MemberPost memberPost = findMemberPostDetailById(postId);
-
-		if (memberPost.isNotAuthor(member)) {
-			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
-		}
-
-		if (memberPost.isDraft()) {
-			throw new ThreedBadRequestException("출판 전 포스트는 수정할 수 없습니다: " + postId);
-		}
+		validateAuthor(memberPost, member);
+		validatePublished(memberPost);
 
 		String newTitle = request.title();
 		Field field = Field.fromName(request.field());
@@ -185,17 +166,29 @@ public class MemberPostService {
 
 	@Transactional
 	public void delete(Member member, Long postId) {
-		MemberPost memberPost = findMemberPostByIdNotDeleted(postId);
-
-		if (memberPost.isNotAuthor(member)) {
-			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + postId);
-		}
-
-		if (memberPost.isDraft()) {
-			throw new ThreedBadRequestException("릴리즈 전 포스트는 삭제할 수 없습니다: " + postId);
-		}
+		MemberPost memberPost = findMemberPostDetailById(postId);
+		validateAuthor(memberPost, member);
+		validatePublished(memberPost);
 
 		memberPostRepository.delete(memberPost);
+	}
+
+	private void validateAuthor(MemberPost post, Member member) {
+		if (post.isNotAuthor(member)) {
+			throw new ThreedBadRequestException("회원 포스트 작성자가 아닙니다: " + post.getId());
+		}
+	}
+
+	private void validateNotPublished(MemberPost memberPost) {
+		if (memberPost.isPublished()) {
+			throw new ThreedBadRequestException("이미 출판된 포스트입니다: " + memberPost.getId());
+		}
+	}
+
+	private void validatePublished(MemberPost memberPost) {
+		if (memberPost.isNotPublished()) {
+			throw new ThreedBadRequestException("출판 전 포스트입니다: " + memberPost.getId());
+		}
 	}
 
 	private MemberPostResponse toMemberPostResponse(MemberPost post, LocalDateTime now, List<Long> popularPostIds) {
@@ -207,11 +200,6 @@ public class MemberPostService {
 
 	private MemberPost findMemberPostById(Long postId) {
 		return memberPostRepository.findById(postId)
-			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
-	}
-
-	private MemberPost findMemberPostByIdNotDeleted(Long postId) {
-		return memberPostRepository.findByIdAndDeletedAtIsNull(postId)
 			.orElseThrow(() -> new ThreedNotFoundException("회원 포스트가 존재하지 않습니다: " + postId));
 	}
 
