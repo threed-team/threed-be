@@ -1,11 +1,9 @@
 package com.example.threedbe.member.service;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +17,7 @@ import com.example.threedbe.member.domain.ProviderType;
 import com.example.threedbe.member.dto.request.AuthoredPostRequest;
 import com.example.threedbe.member.dto.response.AuthoredPostResponse;
 import com.example.threedbe.member.repository.MemberRepository;
-import com.example.threedbe.post.domain.MemberPost;
-import com.example.threedbe.post.domain.PopularCondition;
-import com.example.threedbe.post.repository.MemberPostRepository;
+import com.example.threedbe.post.service.MemberPostService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class MemberService {
 
 	private final MemberRepository memberRepository;
-	private final MemberPostRepository memberPostRepository;
+	private final MemberPostService memberPostService;
 
 	public Member findById(Long memberId) {
 		Member member = memberRepository.findById(memberId)
@@ -78,32 +74,11 @@ public class MemberService {
 		return memberRepository.findByEmail(email);
 	}
 
-	// TODO: N+1 문제 해결하기
-	public PageResponse<AuthoredPostResponse> findAuthoredPosts(
-		Member member,
-		AuthoredPostRequest authoredPostRequest) {
-
-		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(LocalDateTime.now());
-		List<MemberPost> popularPosts = memberPostRepository.findPopularPosts(startDate);
-
-		PageRequest pageRequest = PageRequest.of(authoredPostRequest.page() - 1, authoredPostRequest.size());
-		Page<AuthoredPostResponse> authoredPosts = memberPostRepository.findByMemberIdOrderByCreatedAtDesc(
-				member.getId(),
-				pageRequest)
-			.map(post -> toAuthoredPostResponse(post, now, popularPosts));
+	public PageResponse<AuthoredPostResponse> findAuthoredPosts(Member member, AuthoredPostRequest request) {
+		Pageable pageable = request.toPageRequest();
+		Page<AuthoredPostResponse> authoredPosts = memberPostService.findAuthoredPosts(member.getId(), pageable);
 
 		return PageResponse.from(authoredPosts);
 	}
 
-	private AuthoredPostResponse toAuthoredPostResponse(
-		MemberPost post,
-		LocalDateTime now,
-		List<MemberPost> popularPosts) {
-
-		boolean isNew = post.isNew(now);
-		boolean isHot = popularPosts.contains(post);
-
-		return AuthoredPostResponse.from(post, isNew, isHot);
-	}
 }

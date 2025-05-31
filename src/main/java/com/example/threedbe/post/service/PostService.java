@@ -30,28 +30,31 @@ public class PostService {
 			.orElseThrow(() -> new ThreedNotFoundException("존재하지 않는 포스트입니다."));
 	}
 
-	public Page<BookmarkedPostResponse> findBookmarkedPostsByMemberId(Long memberId, Pageable pageable) {
-		return postRepository.findBookmarkedPostsByMemberId(memberId, pageable);
-	}
-
 	public Page<BookmarkedPostResponse> findBookmarkedPosts(Long memberId, Pageable pageable) {
+		Page<BookmarkedPostResponse> bookmarkedPosts = postRepository.findBookmarkedPostsByMemberId(memberId, pageable);
+		if (bookmarkedPosts.isEmpty()) {
+			return Page.empty(pageable);
+		}
+
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(now);
 		List<Long> popularCompanyPostIds = companyPostService.findPopularPostIds(startDate);
 		List<Long> popularMemberPostIds = memberPostService.findPopularPostIds(startDate);
 
-		Page<BookmarkedPostResponse> bookmarkedPosts = findBookmarkedPostsByMemberId(memberId, pageable);
-
 		return bookmarkedPosts.map(response -> toBookmarkedPostResponse(
 			response,
-			startDate,
+			now,
 			popularCompanyPostIds,
 			popularMemberPostIds));
 	}
 
-	private static BookmarkedPostResponse toBookmarkedPostResponse(BookmarkedPostResponse response,
-		LocalDateTime startDate, List<Long> popularCompanyPostIds, List<Long> popularMemberPostIds) {
-		boolean isNew = response.createdAt().isAfter(startDate);
+	private static BookmarkedPostResponse toBookmarkedPostResponse(
+		BookmarkedPostResponse response,
+		LocalDateTime now,
+		List<Long> popularCompanyPostIds,
+		List<Long> popularMemberPostIds) {
+
+		boolean isNew = response.createdAt().isAfter(now);
 		boolean isHot = response.isCompany()
 			? popularCompanyPostIds.contains(response.id())
 			: popularMemberPostIds.contains(response.id());
