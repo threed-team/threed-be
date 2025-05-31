@@ -89,7 +89,9 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 			.where(
 				bookmark.member.id.eq(memberId),
 				post.instanceOf(CompanyPost.class)
-					.or(post.instanceOf(MemberPost.class).and(memberPost.deletedAt.isNull())))
+					.or(post.instanceOf(MemberPost.class)
+						.and(memberPost.deletedAt.isNull())
+						.and(memberPost.publishedAt.isNotNull())))
 			.orderBy(post.publishedAt.desc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())

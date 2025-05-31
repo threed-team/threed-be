@@ -44,14 +44,18 @@ public class PostService {
 
 		return bookmarkedPosts.map(response -> toBookmarkedPostResponse(
 			response,
-			startDate,
+			now,
 			popularCompanyPostIds,
 			popularMemberPostIds));
 	}
 
-	private static BookmarkedPostResponse toBookmarkedPostResponse(BookmarkedPostResponse response,
-		LocalDateTime startDate, List<Long> popularCompanyPostIds, List<Long> popularMemberPostIds) {
-		boolean isNew = response.createdAt().isAfter(startDate);
+	private static BookmarkedPostResponse toBookmarkedPostResponse(
+		BookmarkedPostResponse response,
+		LocalDateTime now,
+		List<Long> popularCompanyPostIds,
+		List<Long> popularMemberPostIds) {
+
+		boolean isNew = response.createdAt().isAfter(now);
 		boolean isHot = response.isCompany()
 			? popularCompanyPostIds.contains(response.id())
 			: popularMemberPostIds.contains(response.id());
