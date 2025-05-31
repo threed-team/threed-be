@@ -1,6 +1,7 @@
 package com.example.threedbe.bookmark.dto.request;
 
 import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.PageRequest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Positive;
@@ -26,6 +27,10 @@ public record BookmarkedPostRequest(
 		if (size == null) {
 			size = 20;
 		}
+	}
+
+	public PageRequest toPageRequest() {
+		return PageRequest.of(page - 1, size);
 	}
 
 }

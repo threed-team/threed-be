@@ -45,7 +45,7 @@ public class CompanyPostService {
 			pageable);
 
 		LocalDateTime now = LocalDateTime.now();
-		List<Long> popularPostIds = companyPostRepository.findPopularPostIds(now);
+		List<Long> popularPostIds = findPopularPostIds(now);
 		Page<CompanyPostResponse> responsePage =
 			resultPage.map(post -> toCompanyPostResponse(post, now, popularPostIds));
 
@@ -82,6 +82,10 @@ public class CompanyPostService {
 			.toList();
 
 		return ListResponse.from(responses);
+	}
+
+	public List<Long> findPopularPostIds(LocalDateTime now) {
+		return companyPostRepository.findPopularPostIds(PopularCondition.WEEK.calculateStartDate(now));
 	}
 
 	private CompanyPostResponse toCompanyPostResponse(CompanyPost post, LocalDateTime now, List<Long> popularPostIds) {

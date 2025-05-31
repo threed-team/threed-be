@@ -31,4 +31,5 @@ public class BookmarkRepositoryImpl implements BookmarkRepositoryCustom {
 
 		return Optional.ofNullable(foundBookmark);
 	}
+
 }
