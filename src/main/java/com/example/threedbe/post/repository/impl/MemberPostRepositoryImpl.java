@@ -1,20 +1,20 @@
 package com.example.threedbe.post.repository.impl;
 
-import static com.example.threedbe.post.domain.QMemberPost.*;
-import static com.example.threedbe.post.domain.QMemberPostSkill.*;
-import static com.example.threedbe.post.domain.QSkill.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
+import com.example.threedbe.post.domain.QMemberPost;
+import com.example.threedbe.post.domain.QMemberPostSkill;
+import com.example.threedbe.post.domain.QSkill;
 import com.example.threedbe.post.repository.MemberPostRepositoryCustom;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
@@ -30,6 +30,10 @@ import jakarta.persistence.EntityManager;
 public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
+
+	private final QMemberPost memberPost = QMemberPost.memberPost;
+	private final QMemberPostSkill memberPostSkill = QMemberPostSkill.memberPostSkill;
+	private final QSkill skill = QSkill.skill;
 
 	public MemberPostRepositoryImpl(EntityManager em) {
 		this.queryFactory = new JPAQueryFactory(em);
@@ -134,6 +138,39 @@ public class MemberPostRepositoryImpl implements MemberPostRepositoryCustom {
 			.fetchOne();
 
 		return Optional.ofNullable(post);
+	}
+
+	@Override
+	public Page<MemberPost> findMemberPostsByMemberId(Long memberId, Pageable pageable) {
+		BooleanBuilder whereClause = new BooleanBuilder()
+			.and(memberPost.member.id.eq(memberId))
+			.and(memberPost.publishedAt.isNotNull());
+
+		List<Long> postIds = queryFactory.select(memberPost.id)
+			.from(memberPost)
+			.where(whereClause)
+			.orderBy(memberPost.publishedAt.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		if (postIds.isEmpty()) {
+			return new PageImpl<>(List.of(), pageable, 0);
+		}
+
+		List<MemberPost> content = queryFactory.selectFrom(memberPost)
+			.join(memberPost.member).fetchJoin()
+			.leftJoin(memberPost.skills, memberPostSkill).fetchJoin()
+			.leftJoin(memberPostSkill.skill, skill).fetchJoin()
+			.where(memberPost.id.in(postIds))
+			.distinct()
+			.fetch();
+
+		JPAQuery<Long> countQuery = queryFactory.select(memberPost.count())
+			.from(memberPost)
+			.where(whereClause);
+
+		return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
 	}
 
 	private BooleanExpression fieldsIn(List<Field> fields) {

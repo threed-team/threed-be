@@ -31,4 +31,6 @@ public interface MemberPostRepositoryCustom {
 
 	Optional<MemberPost> findMemberPostDetailById(Long postId);
 
+	Page<MemberPost> findMemberPostsByMemberId(Long memberId, Pageable pageable);
+
 }

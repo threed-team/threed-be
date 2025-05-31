@@ -43,6 +43,9 @@ public class CompanyPostService {
 			keyword,
 			excludeCompanies,
 			pageable);
+		if (resultPage.isEmpty()) {
+			return PageResponse.from(Page.empty(pageable));
+		}
 
 		LocalDateTime now = LocalDateTime.now();
 		List<Long> popularPostIds = findPopularPostIds(now);

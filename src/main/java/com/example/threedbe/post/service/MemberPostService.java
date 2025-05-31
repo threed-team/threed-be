@@ -16,6 +16,7 @@ import com.example.threedbe.common.exception.ThreedBadRequestException;
 import com.example.threedbe.common.exception.ThreedNotFoundException;
 import com.example.threedbe.common.service.S3Service;
 import com.example.threedbe.member.domain.Member;
+import com.example.threedbe.member.dto.response.AuthoredPostResponse;
 import com.example.threedbe.post.domain.Field;
 import com.example.threedbe.post.domain.MemberPost;
 import com.example.threedbe.post.domain.PopularCondition;
@@ -85,17 +86,20 @@ public class MemberPostService {
 		boolean excludeSkillNames = skillNames != null && skillNames.contains(Skill.ETC);
 		String keyword = request.extractKeyword();
 		Pageable pageable = request.toPageRequest();
-		Page<MemberPost> resultPage = memberPostRepository.searchMemberPosts(
+		Page<MemberPost> memberPosts = memberPostRepository.searchMemberPosts(
 			fields,
 			excludeSkillNames ? Skill.filterExcludedSkillNames(skillNames) : skillNames,
 			keyword,
 			excludeSkillNames,
 			pageable);
+		if (memberPosts.isEmpty()) {
+			return PageResponse.from(Page.empty(pageable));
+		}
 
 		LocalDateTime now = LocalDateTime.now();
 		List<Long> popularPostIds = findPopularPostIds(now);
 		Page<MemberPostResponse> responsePage =
-			resultPage.map(post -> toMemberPostResponse(post, now, popularPostIds));
+			memberPosts.map(post -> toMemberPostResponse(post, now, popularPostIds));
 
 		return PageResponse.from(responsePage);
 	}
@@ -173,6 +177,20 @@ public class MemberPostService {
 		memberPostRepository.delete(memberPost);
 	}
 
+	public Page<AuthoredPostResponse> findAuthoredPosts(Long memberId, Pageable pageable) {
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime startDate = PopularCondition.WEEK.calculateStartDate(now);
+
+		Page<MemberPost> memberPosts = memberPostRepository.findMemberPostsByMemberId(memberId, pageable);
+		if (memberPosts.isEmpty()) {
+			return Page.empty(pageable);
+		}
+
+		List<Long> popularPostIds = findPopularPostIds(startDate);
+
+		return memberPosts.map(post -> toAuthoredPostResponse(post, now, popularPostIds));
+	}
+
 	public List<Long> findPopularPostIds(LocalDateTime now) {
 		return memberPostRepository.findPopularPostIds(PopularCondition.WEEK.calculateStartDate(now));
 	}
@@ -216,6 +234,17 @@ public class MemberPostService {
 		boolean isNew = post.isNew(now);
 
 		return MemberPostResponse.from(post, isNew, true);
+	}
+
+	private AuthoredPostResponse toAuthoredPostResponse(
+		MemberPost post,
+		LocalDateTime now,
+		List<Long> popularPostIds) {
+
+		boolean isNew = post.isNew(now);
+		boolean isHot = popularPostIds.contains(post.getId());
+
+		return AuthoredPostResponse.from(post, isNew, isHot);
 	}
 
 }
