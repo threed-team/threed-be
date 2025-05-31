@@ -46,8 +46,7 @@ public record BookmarkedPostResponse(
 
 ) {
 
-	public static BookmarkedPostResponse from(CompanyPost companyPost, boolean isNew, boolean isHot) {
-
+	public static BookmarkedPostResponse from(CompanyPost companyPost) {
 		return new BookmarkedPostResponse(
 			companyPost.getId(),
 			companyPost.getTitle(),
@@ -58,13 +57,12 @@ public record BookmarkedPostResponse(
 			null,
 			companyPost.getPublishedAt(),
 			true,
-			isNew,
-			isHot
+			false,
+			false
 		);
 	}
 
-	public static BookmarkedPostResponse from(MemberPost memberPost, boolean isNew, boolean isHot) {
-
+	public static BookmarkedPostResponse from(MemberPost memberPost) {
 		return new BookmarkedPostResponse(
 			memberPost.getId(),
 			memberPost.getTitle(),
@@ -78,6 +76,22 @@ public record BookmarkedPostResponse(
 				.toList(),
 			memberPost.getPublishedAt(),
 			false,
+			false,
+			false
+		);
+	}
+
+	public static BookmarkedPostResponse withPopularity(BookmarkedPostResponse response, boolean isNew, boolean isHot) {
+		return new BookmarkedPostResponse(
+			response.id(),
+			response.title(),
+			response.thumbnailImageUrl(),
+			response.field(),
+			response.viewCount(),
+			response.author(),
+			response.skills(),
+			response.createdAt(),
+			response.isCompany(),
 			isNew,
 			isHot
 		);

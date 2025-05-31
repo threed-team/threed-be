@@ -93,7 +93,7 @@ public class MemberPostService {
 			pageable);
 
 		LocalDateTime now = LocalDateTime.now();
-		List<Long> popularPostIds = memberPostRepository.findPopularPostIds(now);
+		List<Long> popularPostIds = findPopularPostIds(now);
 		Page<MemberPostResponse> responsePage =
 			resultPage.map(post -> toMemberPostResponse(post, now, popularPostIds));
 
@@ -171,6 +171,10 @@ public class MemberPostService {
 		validatePublished(memberPost);
 
 		memberPostRepository.delete(memberPost);
+	}
+
+	public List<Long> findPopularPostIds(LocalDateTime now) {
+		return memberPostRepository.findPopularPostIds(PopularCondition.WEEK.calculateStartDate(now));
 	}
 
 	private void validateAuthor(MemberPost post, Member member) {

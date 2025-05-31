@@ -79,9 +79,7 @@ public class Member {
 
 	public void removeBookmark(Bookmark bookmark) {
 		this.bookmarks.remove(bookmark);
-		bookmark.getPost().getBookmarks().remove(bookmark);
 		bookmark.removeMember();
-		bookmark.removePost();
 	}
 
 	public String getHardwareNo() {
@@ -99,4 +97,5 @@ public class Member {
 	public int hashCode() {
 		return Objects.hashCode(id);
 	}
+
 }

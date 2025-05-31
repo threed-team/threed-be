@@ -43,9 +43,5 @@ public class Bookmark {
 		this.member = null;
 	}
 
-	public void removePost() {
-		this.post = null;
-	}
-
 }
 
