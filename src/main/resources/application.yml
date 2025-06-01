@@ -1,3 +1,60 @@
 spring:
   application:
     name: threed-be
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/threed
+    username: root
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+security:
+  cors:
+    allowed-origins: http://localhost:3000
+
+springdoc:
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    disable-swagger-default-url: true
+    display-request-duration: true
+    operations-sorter: alpha
+
+auth:
+  access-key: secretsecretsecretsecretsecretsecretsecretsecret
+  refresh-key: secretsecretsecretsecretsecretsecretsecretsecret
+  access-expiration: 7200000 # 2 hours
+  refresh-expiration: 2419200000 # 28 days
+
+oauth:
+  google:
+    client-id: client-id
+    client-secret: client-secret
+    redirect-uri: http://localhost:3000/oauth/google/callback
+
+  kakao:
+    client-id: client-id
+    redirect-uri: http://localhost:3000/oauth/kakao/callback
+
+  github:
+    client-id: client-id
+    client-secret: client-secret
+    redirect-uri: http://localhost:3000/oauth/github/callback
+
+
+aws:
+  s3:
+    region: ap-northeast-2
+    bucket-name: bucket-name
+    access-key: access-key
+    secret-key: secret-key
+    thumbnail-directory: thumbnail
+    cdn-url: cdn-url
