@@ -59,4 +59,5 @@ public class GoogleOAuthClient implements OAuthClient {
 			GoogleUserInfo.class
 		).getBody();
 	}
+
 }

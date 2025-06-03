@@ -33,4 +33,5 @@ public record KakaoUserInfo(
 		@JsonProperty("profile_image_url") String profileImageUrl
 	) {
 	}
+
 }
